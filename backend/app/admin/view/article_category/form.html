@@ -1,0 +1,27 @@
+<form action="{:sysuri()}" method="post" data-auto="true" class="layui-form layui-card" data-table-id="CategoryTable">
+    <div class="layui-card-body padding-left-40">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-xs3 text-center padding-top-15">
+                <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" data-cut-width="200" data-cut-height="200" name="icon" value="{$vo.icon|default=''}">
+                <script>$('[name=icon]').uploadOneImage();</script>
+                <div class="color-desc margin-top-5">分类图标(可选)</div>
+            </div>
+            <div class="layui-col-xs9">
+                <label class="block relative">
+                    <span class="help-label"><b>分类名称</b>Name</span>
+                    <input name="name" value='{$vo.name|default=""}' required placeholder="请输入分类名称" class="layui-input">
+                </label>
+                <label class="block relative margin-top-10">
+                    <span class="help-label"><b>排序权重</b>Sort</span>
+                    <input name="sort" type="number" value='{$vo.sort|default="100"}' class="layui-input">
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="hr-line-dashed"></div>
+    {notempty name='vo.id'}<input type='hidden' value='{$vo.id}' name='id'>{/notempty}
+    <div class="layui-form-item text-center">
+        <button class="layui-btn" type='submit'>保存数据</button>
+        <button class="layui-btn layui-btn-danger" type='button' data-confirm="确定要取消编辑吗？" data-close>取消编辑</button>
+    </div>
+</form>

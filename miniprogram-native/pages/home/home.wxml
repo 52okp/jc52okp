@@ -1,0 +1,11 @@
+<view class="hero" bindtap="openHero">
+  <image wx:if="{{heroImage}}" src="{{heroImage}}" mode="aspectFill" class="hero-image"/>
+  <view class="hero-title">stable DiffusionAI教程</view><view class="hero-sub">Stable Diffusion 教程 · 模型 · 工具</view>
+</view>
+<view class="page">
+  <view class="search card"><input value="{{keyword}}" bindinput="searchInput" bindconfirm="search" confirm-type="search" placeholder="搜索教程 / 模型 / 工具"/><button size="mini" class="primary" bindtap="search">搜索</button></view>
+  <view class="categories card"><view wx:for="{{categories}}" wx:key="id" class="category" data-index="{{index}}" bindtap="openCategory"><view class="category-icon"><image wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"/><text wx:else>{{item.name[0]}}</text></view><text>{{item.name}}</text></view></view>
+  <view class="section">推荐教程</view>
+  <article-card wx:for="{{recommend}}" wx:key="id" article="{{item}}" bindopen="openArticle"/>
+  <view wx:if="{{!loading && !recommend.length}}" class="empty">暂无推荐</view>
+</view>

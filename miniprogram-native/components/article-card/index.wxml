@@ -1,0 +1,5 @@
+<view class="card article-row" bindtap="open">
+  <image wx:if="{{article.cover}}" class="article-cover" src="{{article.cover}}" mode="aspectFill" lazy-load/>
+  <view wx:else class="article-cover fallback">SD</view>
+  <view class="article-body"><view class="article-title">{{article.title}}</view><view class="article-summary">{{article.summary}}</view><view class="meta">{{article.update_at || ('阅读 ' + article.num_read)}}</view></view>
+</view>

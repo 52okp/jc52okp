@@ -1,0 +1,6 @@
+.layout { display: flex; height: 100vh; }
+.side { width: 196rpx; height: 100vh; background: #f6f9ff; }
+.side-item { padding: 34rpx 10rpx; text-align: center; color: #555f70; }
+.active { background: #fff; color: #2f7bff; font-weight: 700; border-left: 8rpx solid #2f7bff; }
+.main { flex: 1; height: 100vh; padding: 20rpx; box-sizing: border-box; }
+.heading { font-size: 30rpx; font-weight: 800; margin: 6rpx 0 22rpx; }

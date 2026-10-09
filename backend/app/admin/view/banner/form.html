@@ -1,0 +1,32 @@
+<form action="{:sysuri()}" method="post" data-auto="true" class="layui-form layui-card" data-table-id="BannerTable">
+    <div class="layui-card-body padding-left-40">
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-xs4 text-center padding-top-15">
+                <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" data-cut-width="750" data-cut-height="420" name="image" value="{$vo.image|default=''}">
+                <script>$('[name=image]').uploadOneImage();</script>
+                <div class="color-desc margin-top-5">首页头图(建议 750x420)</div>
+            </div>
+            <div class="layui-col-xs8">
+                <label class="block relative">
+                    <span class="help-label"><b>标题</b>Title</span>
+                    <input name="title" value='{$vo.title|default=""}' placeholder="请输入标题(可选)" class="layui-input">
+                </label>
+                <label class="block relative margin-top-10">
+                    <span class="help-label"><b>跳转文章ID</b>Article</span>
+                    <input name="article_id" type="number" value='{$vo.article_id|default="0"}' placeholder="点击轮播图跳转到的文章ID，0=不跳转" class="layui-input">
+                    <span class="help-block">在「教程文章」列表里能看到每篇文章的ID，填这里点击图片即可跳转该文章</span>
+                </label>
+                <label class="block relative margin-top-10">
+                    <span class="help-label"><b>排序权重</b>Sort</span>
+                    <input name="sort" type="number" value='{$vo.sort|default="100"}' class="layui-input">
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="hr-line-dashed"></div>
+    {notempty name='vo.id'}<input type='hidden' value='{$vo.id}' name='id'>{/notempty}
+    <div class="layui-form-item text-center">
+        <button class="layui-btn" type='submit'>保存数据</button>
+        <button class="layui-btn layui-btn-danger" type='button' data-confirm="确定要取消编辑吗？" data-close>取消编辑</button>
+    </div>
+</form>

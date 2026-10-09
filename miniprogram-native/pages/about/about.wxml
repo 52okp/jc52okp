@@ -1,0 +1,6 @@
+<view class="page"><view class="brand"><image src="/static/favicon.png" mode="aspectFill"/><view>52okpAI教程站</view></view>
+<view class="card menu"><view bindtap="privacy">📄 隐私政策　›</view><button open-type="contact">💬 联系客服　›</button><view bindtap="follow">❤️ 关注我们　›</view></view>
+<view class="version">版本 v2.0.0</view>
+<view wx:if="{{showPrivacy}}" class="mask"><view class="dialog card"><view class="heading">隐私政策</view><scroll-view scroll-y class="body">{{setting.privacy_content || '暂无内容'}}</scroll-view><button bindtap="close">关闭</button></view></view>
+<view wx:if="{{showFollow}}" class="mask"><view class="dialog card"><view class="heading">关注我们</view><image wx:if="{{setting.follow_image}}" src="{{setting.follow_image}}" mode="widthFix" class="follow-image" bindtap="preview"/><view wx:else>暂未设置关注图</view><view>{{setting.follow_text}}</view><button bindtap="close">关闭</button></view></view>
+</view>

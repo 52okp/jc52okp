@@ -1,0 +1,67 @@
+{extend name='table'}
+
+{block name="button"}
+<!--{if auth("add")}-->
+<button data-modal='{:url("add")}' data-title="添加头图" class='layui-btn layui-btn-sm layui-btn-primary'>添加头图</button>
+<!--{/if}-->
+<span class="margin-left-10 color-desc" style="line-height:32px">首页顶部头图：列表中排在最前（排序值最大）的一张生效</span>
+{/block}
+
+{block name="content"}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="BannerTable" data-url="{:sysuri('index')}"></table>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#BannerTable').layTable({
+            even: true, height: 'full',
+            sort: {field: 'sort desc,id', type: 'desc'},
+            cols: [[
+                {checkbox: true, fixed: true},
+                {field: 'sort', title: '排序', width: 90, align: 'center', sort: true, templet: '#SortInputTpl'},
+                {
+                    field: 'image', title: '图片', width: 140, align: 'center', templet: function (d) {
+                        if (!d.image) return '-';
+                        return layui.laytpl('<div class="headimg" style="width:120px;height:54px;border-radius:6px" data-tips-image data-lazy-src="{{d.image}}"></div>').render(d);
+                    }
+                },
+                {field: 'title', title: '标题', minWidth: 160, templet: '<div>{{d.title||"-"}}</div>'},
+                {field: 'article_id', title: '跳转文章ID', align: 'center', width: 120, templet: '<div>{{d.article_id>0?d.article_id:"不跳转"}}</div>'},
+                {field: 'status', title: '状态', align: 'center', width: 110, templet: '#StatusSwitchTpl'},
+                {field: 'create_at', title: '创建时间', align: 'center', width: 150, sort: true},
+                {toolbar: '#toolbar', title: '操作', align: 'center', minWidth: 140, fixed: 'right'}
+            ]]
+        });
+        layui.form.on('switch(StatusSwitch)', function (obj) {
+            $.form.load("{:url('state')}", {id: obj.value, status: obj.elem.checked > 0 ? 1 : 0}, 'post', function () {
+                $('#BannerTable').trigger('reload');
+                return false;
+            }, false);
+        });
+    });
+</script>
+
+<script type="text/html" id="StatusSwitchTpl">
+    <!--{if auth("state")}-->
+    <input type="checkbox" value="{{d.id}}" lay-skin="switch" lay-text="已启用|已禁用" lay-filter="StatusSwitch" {{-d.status>0?'checked':''}}>
+    <!--{else}-->
+    {{-d.status ? '<b class="color-green">已启用</b>' : '<b class="color-red">已禁用</b>'}}
+    <!--{/if}-->
+</script>
+
+<script type="text/html" id="SortInputTpl">
+    <input type="number" min="0" data-blur-number="0" data-action-blur="{:sysuri()}" data-value="id#{{d.id}};action#sort;sort#{value}" data-loading="false" value="{{d.sort}}" class="layui-input text-center">
+</script>
+
+<script type="text/html" id="toolbar">
+    <!--{if auth("edit")}-->
+    <a class="layui-btn layui-btn-sm" data-title="编辑轮播图" data-modal='{:url("edit")}?id={{d.id}}'>编 辑</a>
+    <!--{/if}-->
+    <!--{if auth("remove")}-->
+    <a class="layui-btn layui-btn-sm layui-btn-danger" data-confirm="确定要删除吗？" data-action="{:url('remove')}" data-value="id#{{d.id}}">删 除</a>
+    <!--{/if}-->
+</script>
+{/block}

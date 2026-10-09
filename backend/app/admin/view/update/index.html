@@ -1,0 +1,18 @@
+{extend name="main"}
+
+{block name="content"}
+<div class="layui-card">
+    <div class="layui-card-header">教程后端更新检查</div>
+    <div class="layui-card-body">
+        <p>当前版本：{$currentVersion}</p>
+        {if $available}
+        <p>发现版本：{$releaseVersion}（起始版本 {$fromVersion}）</p>
+        <div class="layui-quote-nm">{$releaseNotes|raw}</div>
+        <p>安装功能尚未启用。完成隔离环境的备份、迁移、健康检查与恢复演练后才能开放安装。</p>
+        {else}
+        <p>{$checkMessage|raw}</p>
+        {/if}
+        <a class="layui-btn layui-btn-primary" href="{:url('index')}">重新检查</a>
+    </div>
+</div>
+{/block}

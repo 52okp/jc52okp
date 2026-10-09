@@ -1,0 +1,40 @@
+{extend name="main"}
+
+{block name="content"}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form action="{:sysuri()}" method="post" data-auto="true" class="layui-form layui-card" style="max-width:760px">
+
+            <fieldset class="layui-bg-gray">
+                <legend><b class="layui-badge think-bg-violet">关注我们</b></legend>
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-xs3 text-center padding-top-15">
+                        <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" name="wxapp.follow_image" value="{:sysconf('wxapp.follow_image')}">
+                        <script>$('[name="wxapp.follow_image"]').uploadOneImage();</script>
+                        <div class="color-desc margin-top-5">关注图(公众号二维码等)</div>
+                    </div>
+                    <div class="layui-col-xs9">
+                        <label class="block relative">
+                            <span class="help-label"><b>关注说明文字</b>Follow Text</span>
+                            <textarea name="wxapp.follow_text" placeholder="例如：长按识别二维码关注公众号，获取更多教程" class="layui-textarea">{:sysconf('wxapp.follow_text')}</textarea>
+                        </label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="layui-bg-gray">
+                <legend><b class="layui-badge think-bg-violet">隐私政策</b></legend>
+                <label class="block relative">
+                    <span class="help-label"><b>隐私政策内容</b>Privacy</span>
+                    <textarea name="wxapp.privacy_content" placeholder="在此填写隐私政策全文，支持换行" class="layui-textarea" style="min-height:300px">{:sysconf('wxapp.privacy_content')}</textarea>
+                </label>
+            </fieldset>
+
+            <div class="hr-line-dashed"></div>
+            <div class="layui-form-item text-center">
+                <button class="layui-btn" type="submit">保存设置</button>
+            </div>
+        </form>
+    </div>
+</div>
+{/block}

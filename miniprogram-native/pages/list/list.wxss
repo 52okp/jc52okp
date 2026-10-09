@@ -1,0 +1,3 @@
+.search { display: flex; align-items: center; gap: 12rpx; }
+.search input { flex: 1; }
+.search button { margin: 0; }

@@ -1,0 +1,343 @@
+<form action="{:sysuri()}" method="post" data-auto="true" class="layui-form layui-card" data-table-id="ArticleTable">
+    <div class="layui-card-body padding-left-40">
+        {if isset($vo['source_type']) && $vo['source_type'] === 'wordpress'}
+        <div class="layui-bg-orange" style="padding:12px;margin-bottom:16px;">本文内容来自 WordPress。标题、正文、分类和资料由来源站维护；这里只保存推荐、排序等本地运营设置。</div>
+        {/if}
+
+        <fieldset class="layui-bg-gray">
+            <legend><b class="layui-badge think-bg-violet">基本信息</b></legend>
+
+            <div style="display:flex;gap:20px;align-items:flex-start;">
+                <!-- 封面 -->
+                <div style="flex:0 0 auto;text-align:center;">
+                    <input type="hidden" name="cover" value="{$vo.cover|default=''}">
+                    <div id="cover-box" class="cover-uploader" style="width:120px;height:120px;cursor:pointer;border:1px solid #e2e2ea;border-radius:8px;background:#f7f7f9 center/cover no-repeat;display:flex;align-items:center;justify-content:center;"></div>
+                    <input type="file" id="cover-file" accept="image/*" style="display:none">
+                    <div class="color-desc" style="margin-top:6px;">封面图 · 1:1 正方形</div>
+                    <div id="cover-clear" style="display:none;margin-top:4px;"><a href="javascript:;" style="color:#e54d42;font-size:12px;">删除封面</a></div>
+                </div>
+                <!-- 右侧字段 -->
+                <div style="flex:1;min-width:0;">
+                    <div style="margin-bottom:12px;">
+                        <label class="help-label" style="display:block;margin-bottom:5px;"><b>文章标题</b>Title</label>
+                        <input name="title" value='{$vo.title|default=""}' required placeholder="请输入文章标题" class="layui-input">
+                    </div>
+                    <div style="display:flex;gap:15px;">
+                        <div style="flex:1;">
+                            <label class="help-label" style="display:block;margin-bottom:5px;"><b>所属分类</b>Category</label>
+                            <select name="category_id" lay-ignore class="layui-input" style="height:38px;">
+                                <option value="0">未分类</option>
+                                {php}
+                                $curCat = isset($vo['category_id']) ? intval($vo['category_id']) : 0;
+                                foreach ((isset($categories) ? $categories : []) as $cid => $cname) {
+                                    echo '<option value="' . $cid . '"' . ($cid == $curCat ? ' selected' : '') . '>' . htmlspecialchars($cname) . '</option>';
+                                }
+                                {/php}
+                            </select>
+                        </div>
+                        <div style="flex:1;">
+                            <label class="help-label" style="display:block;margin-bottom:5px;"><b>标签</b>Tags</label>
+                            <input name="tags" value='{$vo.tags|default=""}' placeholder="逗号分隔，如：入门,安装" class="layui-input">
+                        </div>
+                        <div style="flex:0 0 110px;">
+                            <label class="help-label" style="display:block;margin-bottom:5px;"><b>排序权重</b>Sort</label>
+                            <input name="sort" type="number" value='{$vo.sort|default="100"}' class="layui-input">
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;">
+                            <input type="checkbox" name="is_recommend" value="1" lay-ignore {php}echo (isset($vo['is_recommend']) && $vo['is_recommend']) ? 'checked' : '';{/php}>
+                            <span>设为推荐（显示在小程序首页推荐位）</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:14px;">
+                <label class="help-label" style="display:block;margin-bottom:5px;"><b>文章摘要</b>Summary</label>
+                <textarea name="summary" placeholder="一句话简介，显示在列表上" class="layui-textarea">{$vo.summary|default=""}</textarea>
+            </div>
+        </fieldset>
+
+        <fieldset class="layui-bg-gray">
+            <legend>
+                <b class="layui-badge think-bg-violet">文章正文</b>
+                <button type="button" id="md-import-btn" class="layui-btn layui-btn-sm layui-btn-normal" style="margin-left:10px;">📄 导入 Markdown</button>
+                <input type="file" id="md-import-file" accept=".md,.markdown,text/markdown,text/plain" style="display:none">
+                <span class="color-desc margin-left-10">上传 .md 文件自动识别标题/标签/摘要/正文（支持文件头 frontmatter）</span>
+            </legend>
+            <textarea name="content" id="article-content" class="layui-textarea">{$vo.content|default=''}</textarea>
+        </fieldset>
+
+        <fieldset class="layui-bg-gray">
+            <legend><b class="layui-badge think-bg-violet">下载链接（可添加多个网盘）</b></legend>
+            <div id="links-box"></div>
+            <div class="margin-top-10">
+                <button type="button" id="add-link" class="layui-btn layui-btn-sm layui-btn-normal">+ 添加网盘链接</button>
+                <span class="color-desc margin-left-10">网盘类型如：百度网盘 / 夸克网盘 / 阿里云盘；没有提取码可留空</span>
+            </div>
+            <div class="margin-top-10" style="display:flex;align-items:center;gap:10px;">
+                <label style="flex:0 0 auto;"><b>解压密码</b></label>
+                <input name="unzip_code" value='{$vo.unzip_code|default=""}' placeholder="选填；填写后小程序资料区会出现「解压密码」复制条目，留空则不显示" class="layui-input" style="max-width:420px;">
+            </div>
+        </fieldset>
+
+    </div>
+
+    <div class="hr-line-dashed"></div>
+    {notempty name='vo.id'}<input type='hidden' value='{$vo.id}' name='id'>{/notempty}
+
+    <div class="layui-form-item text-center">
+        <button class="layui-btn" type='submit'>保存数据</button>
+        <button class="layui-btn layui-btn-danger" type='button' data-confirm="确定要取消编辑吗？" data-close>取消编辑</button>
+    </div>
+</form>
+
+<datalist id="netdisk-types">
+    <option value="夸克网盘"></option>
+    <option value="百度网盘"></option>
+    <option value="阿里云盘"></option>
+    <option value="迅雷云盘"></option>
+    <option value="123网盘"></option>
+</datalist>
+
+<script>
+    (function () {
+        var fromWordpress = {php}echo (isset($vo['source_type']) && $vo['source_type'] === 'wordpress') ? 'true' : 'false';{/php};
+        // 已有链接数据（务必保证是数组）
+        var existed = {php}echo json_encode((isset($vo['links']) && is_array($vo['links'])) ? $vo['links'] : [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);{/php};
+        if (!Array.isArray(existed)) existed = [];
+
+        function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }
+
+        // 行模板直接写在 JS 里，避免被弹窗加载器抽走 <script> 模板
+        function rowHtml(item) {
+            item = item || {};
+            return '<div class="layui-row layui-col-space10 link-row margin-bottom-5">'
+                + '<div class="layui-col-xs3"><input name="link_type[]" value="' + esc(item.type) + '" placeholder="网盘类型" class="layui-input" list="netdisk-types"></div>'
+                + '<div class="layui-col-xs6"><input name="link_url[]" value="' + esc(item.url) + '" placeholder="网盘链接 https://" class="layui-input"></div>'
+                + '<div class="layui-col-xs2"><input name="link_code[]" value="' + esc(item.code) + '" placeholder="提取码" class="layui-input"></div>'
+                + '<div class="layui-col-xs1"><button type="button" class="layui-btn layui-btn-danger layui-btn-sm del-link">删</button></div>'
+                + '</div>';
+        }
+
+        function addRow(item) { $('#links-box').append(rowHtml(item)); }
+
+        // 初始化已有行；新建时给一个空行
+        if (existed.length) {
+            existed.forEach(addRow);
+        } else {
+            addRow({type: '夸克网盘'});
+        }
+
+        // 用委托绑定，避免时序问题；先解绑防止多次打开重复绑定
+        $('#add-link').off('click.addlink').on('click.addlink', function () { addRow({}); });
+        $('#links-box').off('click.dellink').on('click.dellink', '.del-link', function () {
+            $(this).closest('.link-row').remove();
+        });
+
+        if (fromWordpress) {
+            $('[name=title],[name=category_id],[name=tags],[name=summary],[name=content],'
+                + '[name=cover],[name=unzip_code],[name="link_type[]"],'
+                + '[name="link_url[]"],[name="link_code[]"]').prop('disabled', true);
+            $('#md-import-btn,#add-link,.del-link,#cover-clear').hide();
+            $('#cover-box').css('pointer-events', 'none');
+            return;
+        }
+
+        // 初始化富文本编辑器（wangEditor，自带图片/视频上传，走后台存储=又拍云）
+        // createEditor 会隐藏 textarea 并实时把内容同步回 textarea，提交即可取到
+        require(['weditor'], function () {
+            var el = document.getElementById('article-content');
+            if (window.createEditor && el && !$(el).data('editorLayout')) {
+                window.__articleEditor = window.createEditor(el, {height: 300});
+                // 关键：去掉编辑器自带的内部滚动，让弹层成为唯一滚动容器
+                // 直接按 wangEditor 的 class 找滚动元素（不依赖会变 null 的 id），用内联样式必定生效
+                var fixScroll = function () {
+                    var $wrap = $('#article-content').next();
+                    var $tc = $wrap.find('.w-e-text-container');
+                    $tc.find('.w-e-scroll').css({
+                        height: 'auto', 'max-height': 'none', 'min-height': '300px', 'overflow': 'visible'
+                    });
+                    $tc.css('height', 'auto');
+                    // 关键：把编辑区宿主（.w-e-text-container 的父级，被写死 400px 的那个）一起撑开
+                    $tc.parent().css({ height: 'auto', 'min-height': '300px' });
+                };
+                window.__fixEditorScroll = fixScroll;
+                setTimeout(fixScroll, 150);
+                setTimeout(fixScroll, 600);
+            }
+        });
+    })();
+</script>
+
+<style>
+    .cover-uploader {
+        width: 120px; height: 120px; margin: 0 auto; cursor: pointer;
+        border-radius: 8px; border: 1px solid #e2e2ea; background: #f7f7f9 center/cover no-repeat;
+        display: flex; align-items: center; justify-content: center; transition: border-color .2s;
+    }
+    .cover-uploader:hover { border-color: #6c5ce7; }
+
+    /* 让正文编辑器随内容自适应高度、去掉内部滚动条，
+       使整个弹窗只有一个滚动条 —— 解决“遮盖 / 滚动被困回不去”的问题 */
+    #article-content + div { z-index: auto !important; }
+    /* 撑高所有直接子 div（含被写死 height:400px 的编辑区宿主），不再依赖 :last-child，
+       否则 wangEditor 注入额外 div 后宿主仍是固定高，长文会溢出盖住下方元素 */
+    #article-content + div > div { height: auto !important; }
+    #article-content + div .w-e-text-container { height: auto !important; }
+    #article-content + div .w-e-scroll {
+        height: auto !important; max-height: none !important; min-height: 280px; overflow: visible !important;
+    }
+</style>
+
+<script>
+    // 封面：交互式裁剪上传（拖动/缩放选择显示区域，再上传到后台存储=又拍云）
+    (function () {
+        var $cover = $('[name=cover]'), $box = $('#cover-box'), $file = $('#cover-file'), $clear = $('#cover-clear');
+
+        function preview() {
+            var url = $cover.val();
+            if (url) {
+                $box.css('background-image', 'url(' + encodeURI(url) + ')').html('');
+                $clear.show();
+            } else {
+                $box.css('background-image', '').html('<span style="color:#9a9aa8;font-size:12px;">+ 上传封面</span>');
+                $clear.hide();
+            }
+        }
+        preview();
+
+        $box.on('click', function () { $file.val('').trigger('click'); });
+
+        // 删除封面：清空隐藏字段并恢复占位（阻止冒泡，避免触发上传选择）
+        $clear.on('click', 'a', function (e) {
+            e.stopPropagation();
+            $cover.val('');
+            preview();
+        });
+
+        $file.on('change', function () {
+            var f = this.files && this.files[0];
+            if (!f) return;
+            var reader = new FileReader();
+            reader.onload = function (e) { openCrop(e.target.result); };
+            reader.readAsDataURL(f);
+        });
+
+        function openCrop(dataUrl) {
+            require(['cropper', 'upload'], function (Cropper) {
+                var cropper = null;
+                layui.layer.open({
+                    type: 1,
+                    title: '裁剪封面（拖动 / 滚轮缩放，框内为显示区域）',
+                    area: ['700px', '540px'],
+                    content: '<div style="padding:12px;background:#f7f7f9;height:430px;overflow:hidden;">'
+                        + '<img id="__cropimg" src="' + dataUrl + '" style="max-width:100%;display:block;"></div>',
+                    success: function (layero) {
+                        var img = layero.find('#__cropimg')[0];
+                        cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: 1, background: false });
+                    },
+                    btn: ['确定使用', '取消'],
+                    yes: function (idx) {
+                        if (!cropper) { layui.layer.close(idx); return; }
+                        cropper.getCroppedCanvas({ width: 800, height: 800, imageSmoothingQuality: 'high' }).toBlob(function (blob) {
+                            var file = new File([blob], 'cover_' + Date.now() + '.jpg', { type: 'image/jpeg' });
+                            var loading = layui.layer.load(2);
+                            new window.AdminUploadAdapter({ hide: true }).upload([file], function (url) {
+                                layui.layer.close(loading);
+                                if (url) { $cover.val(url); preview(); }
+                            });
+                            cropper.destroy(); cropper = null;
+                            layui.layer.close(idx);
+                        }, 'image/jpeg', 0.92);
+                    },
+                    cancel: function () { if (cropper) { cropper.destroy(); cropper = null; } }
+                });
+            });
+        }
+    })();
+</script>
+
+<script>
+    // 导入 Markdown：上传 .md → 后台解析 → 自动填充标题/标签/摘要/分类/正文
+    (function () {
+        var url = "{:url('mdimport')}";
+        var $btn = $('#md-import-btn'), $file = $('#md-import-file');
+
+        $btn.off('click.mdimport').on('click.mdimport', function () { $file.val('').trigger('click'); });
+
+        $file.off('change.mdimport').on('change.mdimport', function () {
+            var f = this.files && this.files[0];
+            if (!f) return;
+            var fd = new FormData();
+            fd.append('file', f);
+            var loading = layui.layer.load(2);
+            $.ajax({
+                url: url, type: 'POST', data: fd, processData: false, contentType: false,
+                success: function (ret) {
+                    layui.layer.close(loading);
+                    if (!ret || ret.code !== 1) { layui.layer.msg((ret && ret.info) || '解析失败', {icon: 2}); return; }
+                    var d = ret.data || {};
+                    // 标题（仅当解析到才覆盖）
+                    if (d.title) $('input[name=title]').val(d.title);
+                    // 标签：与已有合并去重
+                    if (d.tags) {
+                        var cur = ($('input[name=tags]').val() || '').split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
+                        var add = String(d.tags).split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
+                        var all = cur.concat(add).filter(function (v, i, a) { return a.indexOf(v) === i; });
+                        $('input[name=tags]').val(all.join(','));
+                    }
+                    // 摘要（为空时才填，避免覆盖手填内容）
+                    if (d.summary && !$('textarea[name=summary]').val()) $('textarea[name=summary]').val(d.summary);
+                    // 分类：按名称匹配下拉项
+                    if (d.category) {
+                        $('select[name=category_id] option').each(function () {
+                            if ($.trim($(this).text()) === $.trim(d.category)) $('select[name=category_id]').val($(this).val());
+                        });
+                    }
+                    // 正文：写入富文本编辑器（同时回写 textarea 保证提交可取）
+                    if (d.content != null) {
+                        if (window.__articleEditor && window.__articleEditor.setHtml) {
+                            window.__articleEditor.setHtml(d.content);
+                        }
+                        $('#article-content').val(d.content);
+                    }
+                    // 长文导入后内容高度骤变：重新撑高编辑区并重排弹层，避免溢出盖住下方元素
+                    var relayout = function () {
+                        if (window.__fixEditorScroll) window.__fixEditorScroll();
+                        if (window.__fitArticleLayer) window.__fitArticleLayer();
+                    };
+                    setTimeout(relayout, 60);
+                    setTimeout(relayout, 300);
+                    layui.layer.msg('已导入，可继续编辑后保存', {icon: 1});
+                },
+                error: function () { layui.layer.close(loading); layui.layer.msg('上传失败，请重试', {icon: 2}); }
+            });
+        });
+    })();
+</script>
+
+<script>
+    // 保证整个编辑弹层在视口内可上下滚动（与“编辑器去掉内部滚动”配合，单一滚动条，不会卡）
+    (function () {
+        function fitLayer() {
+            var $form = $('form[data-table-id="ArticleTable"]').last();
+            if (!$form.length) return;
+            var $content = $form.closest('.layui-layer-content');
+            if (!$content.length) return;
+            var maxH = Math.floor(window.innerHeight * 0.86);
+            $content.css({ 'max-height': maxH + 'px', 'overflow-y': 'auto', 'overflow-x': 'hidden' });
+            // 重新垂直居中，避免顶部被推出屏幕外
+            var $layer = $content.closest('.layui-layer');
+            if ($layer.length) {
+                var top = Math.max(8, Math.floor((window.innerHeight - $layer.outerHeight()) / 2));
+                $layer.css('top', top + 'px');
+            }
+        }
+        window.__fitArticleLayer = fitLayer;
+        setTimeout(fitLayer, 250);
+        setTimeout(fitLayer, 800);
+        $(window).off('resize.articlefit').on('resize.articlefit', fitLayer);
+    })();
+</script>

@@ -1,0 +1,14 @@
+{
+  "pages": ["pages/home/home", "pages/category/category", "pages/my/my", "pages/list/list", "pages/detail/detail", "pages/favorites/favorites", "pages/history/history", "pages/about/about", "pages/account-confirm/index", "pages/account-policy/index"],
+  "window": {"navigationBarTitleText": "52okpAI教程站", "navigationBarBackgroundColor": "#2f7bff", "navigationBarTextStyle": "white"},
+  "tabBar": {
+    "color": "#9aa3b2", "selectedColor": "#2f7bff", "backgroundColor": "#ffffff",
+    "list": [
+      {"pagePath": "pages/home/home", "text": "首页", "iconPath": "static/tabbar/home.png", "selectedIconPath": "static/tabbar/home-on.png"},
+      {"pagePath": "pages/category/category", "text": "分类", "iconPath": "static/tabbar/cat.png", "selectedIconPath": "static/tabbar/cat-on.png"},
+      {"pagePath": "pages/my/my", "text": "我的", "iconPath": "static/tabbar/my.png", "selectedIconPath": "static/tabbar/my-on.png"}
+    ]
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "style": "v2"
+}

@@ -1,0 +1,31 @@
+{
+  "pages": [
+    { "path": "pages/home/home", "style": { "navigationBarTitleText": "stable DiffusionAI教程", "enablePullDownRefresh": true, "backgroundTextStyle": "dark", "backgroundColor": "#eaf1ff" } },
+    { "path": "pages/category/category", "style": { "navigationBarTitleText": "分类" } },
+    { "path": "pages/my/my", "style": { "navigationBarTitleText": "我的" } },
+    { "path": "pages/list/list", "style": { "navigationBarTitleText": "文章列表" } },
+    { "path": "pages/detail/detail", "style": { "navigationBarTitleText": "教程详情" } },
+    { "path": "pages/favorites/favorites", "style": { "navigationBarTitleText": "我的收藏" } },
+    { "path": "pages/history/history", "style": { "navigationBarTitleText": "浏览历史" } },
+    { "path": "pages/about/about", "style": { "navigationBarTitleText": "关于我们" } },
+    { "path": "pages/account-confirm/index", "style": { "navigationBarTitleText": "52okp 登录确认" } },
+    { "path": "pages/account-policy/index", "style": { "navigationBarTitleText": "账号使用与隐私说明" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "52okpAI教程站",
+    "navigationBarBackgroundColor": "#2f7bff",
+    "backgroundColor": "#eaf1ff"
+  },
+  "tabBar": {
+    "color": "#9aa3b2",
+    "selectedColor": "#2f7bff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/home/home", "text": "首页", "iconPath": "static/tabbar/home.png", "selectedIconPath": "static/tabbar/home-on.png" },
+      { "pagePath": "pages/category/category", "text": "分类", "iconPath": "static/tabbar/cat.png", "selectedIconPath": "static/tabbar/cat-on.png" },
+      { "pagePath": "pages/my/my", "text": "我的", "iconPath": "static/tabbar/my.png", "selectedIconPath": "static/tabbar/my-on.png" }
+    ]
+  }
+}

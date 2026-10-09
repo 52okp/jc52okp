@@ -1,0 +1,42 @@
+/* 全局样式 */
+page {
+  background: #f4f4f8;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", Helvetica, sans-serif;
+  color: #2d2d3a;
+}
+
+.container {
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+/* 通用卡片 */
+.card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 6rpx 20rpx rgba(108, 92, 231, 0.06);
+}
+
+.tag {
+  display: inline-block;
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  background: #efeafe;
+  color: #6c5ce7;
+  margin-right: 12rpx;
+}
+
+.muted {
+  color: #9a9aa8;
+  font-size: 24rpx;
+}
+
+.btn-primary {
+  background: #6c5ce7;
+  color: #fff;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+}

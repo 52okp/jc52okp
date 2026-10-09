@@ -1,0 +1,6 @@
+{
+  "appid": "wx4ec45155a93041cc",
+  "compileType": "miniprogram",
+  "setting": {"es6": true, "minified": true, "minifyWXML": true},
+  "editorSetting": {}
+}

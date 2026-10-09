@@ -1,0 +1,31 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+!.env.production
+.install-edgeone-key
+install.lock
+*.local
+**/project.private.config.json
+
+# Local data, uploads, generated packages and build output
+deploy-artifacts/
+backend/runtime/
+backend/safefile/
+backend/database/sqlite.db
+backend/public/upload/
+backend/public/uploads/
+frontend/node_modules/
+frontend/dist/
+frontend/.account-login-backup-*/
+*.sql.zip
+*.sqlite
+*.sqlite3
+*.log
+*.zip
+
+# Editor and operating-system state
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

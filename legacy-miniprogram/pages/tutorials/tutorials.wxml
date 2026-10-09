@@ -1,0 +1,29 @@
+<view class="container">
+  <view class="header">
+    <view class="title">Stable Diffusion 教程</view>
+    <view class="muted">从入门到进阶，持续更新</view>
+  </view>
+
+  <view
+    wx:for="{{list}}"
+    wx:key="id"
+    class="card tut-card"
+    bindtap="goDetail"
+    data-id="{{item.id}}"
+  >
+    <view class="cover {{item.cover ? '' : 'cover-default'}}">
+      <image wx:if="{{item.cover}}" src="{{item.cover}}" mode="aspectFill" class="cover-img" />
+      <text wx:else class="cover-text">SD</text>
+    </view>
+    <view class="tut-body">
+      <view class="tut-title">{{item.title}}</view>
+      <view class="tut-summary">{{item.summary}}</view>
+      <view class="tut-meta">
+        <text wx:for="{{item.tags}}" wx:for-item="t" wx:key="*this" class="tag">{{t}}</text>
+        <text class="muted update">{{item.updatedAt}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{list.length === 0}}" class="empty">暂无教程</view>
+</view>

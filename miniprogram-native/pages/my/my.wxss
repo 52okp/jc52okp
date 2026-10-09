@@ -1,0 +1,14 @@
+.profile { display: flex; align-items: center; gap: 24rpx; background: linear-gradient(135deg,#2f7bff,#79b4ff); color: #fff; padding: 38rpx; }
+.avatar-button { margin: 0; padding: 0; width: 120rpx; height: 120rpx; border-radius: 50%; background: transparent; }
+.avatar-button::after { border: 0; }
+.avatar { width: 120rpx; height: 120rpx; border-radius: 50%; }
+.name { font-size: 36rpx; font-weight: 800; }
+.small { font-size: 23rpx; font-weight: 400; margin-top: 12rpx; }
+.menu view { padding: 25rpx 8rpx; border-bottom: 1rpx solid #e5edfa; }
+.menu view:last-child { border: 0; }
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; }
+.dialog { width: 570rpx; }
+.heading { text-align: center; font-size: 32rpx; font-weight: 700; margin-bottom: 25rpx; }
+.dialog input { border: 1rpx solid #dbe6f8; border-radius: 12rpx; padding: 20rpx; }
+.buttons { display: flex; gap: 20rpx; margin-top: 25rpx; }
+.buttons button { flex: 1; }

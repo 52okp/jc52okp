@@ -1,0 +1,30 @@
+<view class="container" wx:if="{{tutorial}}">
+  <view class="d-title">{{tutorial.title}}</view>
+  <view class="d-meta">
+    <text wx:for="{{tutorial.tags}}" wx:key="*this" class="tag">{{item}}</text>
+    <text class="muted">更新于 {{tutorial.updatedAt}}</text>
+  </view>
+
+  <view class="content">
+    <block wx:for="{{tutorial.content}}" wx:key="index">
+      <view wx:if="{{item.type === 'heading'}}" class="c-heading">{{item.text}}</view>
+      <view wx:elif="{{item.type === 'text'}}" class="c-text">{{item.text}}</view>
+      <view wx:elif="{{item.type === 'tip'}}" class="c-tip">
+        <text class="c-tip-icon">💡</text>
+        <text>{{item.text}}</text>
+      </view>
+      <image
+        wx:elif="{{item.type === 'image' && item.url}}"
+        src="{{item.url}}"
+        mode="widthFix"
+        class="c-image"
+        data-url="{{item.url}}"
+        bindtap="previewImage"
+      />
+    </block>
+  </view>
+
+  <view class="footer-tip muted">相关工具下载请到底部「工具」页查看</view>
+</view>
+
+<view wx:else class="empty">教程不存在或已下线</view>

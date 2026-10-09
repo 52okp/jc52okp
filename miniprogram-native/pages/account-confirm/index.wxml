@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="brand">52okp <text>统一账号</text></view>
+  <view wx:if="{{state === 'waiting'}}" class="card">
+    <view class="badge">{{intent === 'LINK' ? '微信绑定请求' : '应用登录请求'}}</view>
+    <view class="title">{{intent === 'LINK' ? '确认绑定微信' : '确认登录'}}</view>
+    <view class="description">{{intent === 'LINK' ? '正在为已验证的 52okp 账号绑定当前微信，请核对申请应用。' : '以下应用正在请求使用你的 52okp 账号登录，请确认是你本人操作。'}}</view>
+    <view class="platform">{{platform}}</view>
+    <view class="muted">请求剩余有效时间 {{remaining}} 秒</view>
+    <checkbox-group bindchange="agree"><label class="agreement"><checkbox value="accepted" checked="{{accepted}}" disabled="{{busy}}" color="#2f7bff"/>我已阅读并同意</label></checkbox-group>
+    <view class="policy" bindtap="showPolicy">账号使用与隐私说明</view>
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+    <button class="primary" data-decision="confirm" loading="{{busy && pendingDecision === 'confirm'}}" disabled="{{busy}}" bindtap="submit">{{intent === 'LINK' ? '确认绑定' : '确认登录'}}</button>
+    <button data-decision="cancel" loading="{{busy && pendingDecision === 'cancel'}}" disabled="{{busy}}" bindtap="submit">取消</button>
+    <view class="tip">如非本人发起，请取消本次请求。</view>
+  </view>
+  <view wx:else class="card result">
+    <view class="symbol">{{state === 'success' ? '✓' : state === 'cancelled' ? '×' : '◎'}}</view>
+    <view class="title">{{title}}</view><view class="description">{{description}}</view>
+    <button wx:if="{{state === 'error' && ticket && retryable}}" bindtap="loadRequest">重新查询</button>
+    <button wx:if="{{state !== 'loading'}}" class="primary" bindtap="goHome">返回教程首页</button>
+  </view>
+  <view class="footer">统一身份 · 各应用分别登录</view>
+</view>

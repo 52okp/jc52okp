@@ -1,0 +1,11 @@
+page { background: #eaf3ff; color: #1f2a3a; font-size: 28rpx; }
+.page { padding: 28rpx; box-sizing: border-box; }
+.card { background: #fff; border-radius: 24rpx; padding: 24rpx; margin-bottom: 20rpx; box-shadow: 0 8rpx 24rpx rgba(47,123,255,.08); }
+.primary { background: #2f7bff; color: #fff; border-radius: 14rpx; }
+.muted { color: #7b8ca6; }
+.empty { text-align: center; color: #7b8ca6; padding: 80rpx 20rpx; }
+.article-row { display: flex; align-items: center; gap: 20rpx; }
+.article-cover { width: 150rpx; height: 150rpx; border-radius: 18rpx; flex-shrink: 0; background: #d4e6ff; }
+.article-body { flex: 1; min-width: 0; }
+.article-title { font-size: 30rpx; font-weight: 700; }
+.article-summary { color: #687b95; font-size: 25rpx; margin-top: 10rpx; }

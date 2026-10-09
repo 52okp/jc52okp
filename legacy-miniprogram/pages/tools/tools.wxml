@@ -1,0 +1,35 @@
+<view class="container">
+  <view class="header">
+    <view class="title">工具与资源下载</view>
+    <view class="muted">点击链接即可复制，去网盘 App 或浏览器粘贴打开</view>
+  </view>
+
+  <view wx:for="{{list}}" wx:key="id" class="card">
+    <view class="tool-name">{{item.name}}</view>
+    <view class="tool-desc">{{item.desc}}</view>
+    <view class="tool-tags">
+      <text wx:for="{{item.tags}}" wx:for-item="t" wx:key="*this" class="tag">{{t}}</text>
+    </view>
+
+    <view class="links">
+      <view wx:for="{{item.links}}" wx:for-item="link" wx:key="type" class="link-row">
+        <view class="link-left">
+          <text class="link-type">{{link.type}}</text>
+          <text wx:if="{{link.code}}" class="link-code" catchtap="copyCode" data-code="{{link.code}}">
+            提取码 {{link.code}}
+          </text>
+        </view>
+        <button
+          class="copy-btn"
+          size="mini"
+          bindtap="copyLink"
+          data-url="{{link.url}}"
+          data-code="{{link.code}}"
+          data-type="{{link.type}}"
+        >复制链接</button>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{list.length === 0}}" class="empty">暂无工具</view>
+</view>

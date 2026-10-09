@@ -1,0 +1,23 @@
+<view class="container">
+  <view class="card about-card">
+    <view class="logo">SD</view>
+    <view class="app-name">SD 教程站</view>
+    <view class="muted">专注 Stable Diffusion 教程与工具分享</view>
+  </view>
+
+  <view class="card">
+    <view class="row" bindtap="copyWechat">
+      <text>联系客服 / 加群</text>
+      <text class="muted">复制微信号 ›</text>
+    </view>
+    <view class="row">
+      <text>版本</text>
+      <text class="muted">v1.0.0 (demo)</text>
+    </view>
+  </view>
+
+  <view class="tips card">
+    <view class="tips-title">温馨提示</view>
+    <view class="muted">本程序内的网盘链接需复制后到浏览器或对应网盘 App 打开，这是微信平台规则限制，敬请谅解。</view>
+  </view>
+</view>

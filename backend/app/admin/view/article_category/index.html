@@ -1,0 +1,65 @@
+{extend name='table'}
+
+{block name="button"}
+<!--{if auth("add")}-->
+<button data-modal='{:url("add")}' data-title="添加分类" class='layui-btn layui-btn-sm layui-btn-primary'>添加分类</button>
+<!--{/if}-->
+{/block}
+
+{block name="content"}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="CategoryTable" data-url="{:sysuri('index')}"></table>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#CategoryTable').layTable({
+            even: true, height: 'full',
+            sort: {field: 'sort desc,id', type: 'desc'},
+            cols: [[
+                {checkbox: true, fixed: true},
+                {field: 'sort', title: '排序', width: 90, align: 'center', sort: true, templet: '#SortInputTpl'},
+                {
+                    field: 'icon', title: '图标', width: 70, align: 'center', templet: function (d) {
+                        if (!d.icon) return '-';
+                        return layui.laytpl('<div class="headimg headimg-ss" data-tips-image data-lazy-src="{{d.icon}}"></div>').render(d);
+                    }
+                },
+                {field: 'name', title: '分类名称', minWidth: 200, templet: '<div>{{d.name||"-"}}</div>'},
+                {field: 'status', title: '状态', align: 'center', width: 110, templet: '#StatusSwitchTpl'},
+                {field: 'create_at', title: '创建时间', align: 'center', width: 150, sort: true},
+                {toolbar: '#toolbar', title: '操作', align: 'center', minWidth: 140, fixed: 'right'}
+            ]]
+        });
+        layui.form.on('switch(StatusSwitch)', function (obj) {
+            $.form.load("{:url('state')}", {id: obj.value, status: obj.elem.checked > 0 ? 1 : 0}, 'post', function () {
+                $('#CategoryTable').trigger('reload');
+                return false;
+            }, false);
+        });
+    });
+</script>
+
+<script type="text/html" id="StatusSwitchTpl">
+    <!--{if auth("state")}-->
+    <input type="checkbox" value="{{d.id}}" lay-skin="switch" lay-text="已启用|已禁用" lay-filter="StatusSwitch" {{-d.status>0?'checked':''}}>
+    <!--{else}-->
+    {{-d.status ? '<b class="color-green">已启用</b>' : '<b class="color-red">已禁用</b>'}}
+    <!--{/if}-->
+</script>
+
+<script type="text/html" id="SortInputTpl">
+    <input type="number" min="0" data-blur-number="0" data-action-blur="{:sysuri()}" data-value="id#{{d.id}};action#sort;sort#{value}" data-loading="false" value="{{d.sort}}" class="layui-input text-center">
+</script>
+
+<script type="text/html" id="toolbar">
+    <!--{if auth("edit")}-->
+    <a class="layui-btn layui-btn-sm" data-title="编辑分类" data-modal='{:url("edit")}?id={{d.id}}'>编 辑</a>
+    <!--{/if}-->
+    <!--{if auth("remove")}-->
+    <a class="layui-btn layui-btn-sm layui-btn-danger" data-confirm="确定要删除吗？" data-action="{:url('remove')}" data-value="id#{{d.id}}">删 除</a>
+    <!--{/if}-->
+</script>
+{/block}

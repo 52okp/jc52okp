@@ -1,0 +1,11 @@
+.brand { text-align: center; padding: 30rpx 0 40rpx; font-size: 34rpx; font-weight: 800; }
+.brand image { width: 140rpx; height: 140rpx; border-radius: 30rpx; display: block; margin: 0 auto 20rpx; }
+.menu view,.menu button { padding: 25rpx 0; border-bottom: 1rpx solid #e5edfa; }
+.menu button { background: transparent; text-align: left; font-size: 28rpx; line-height: normal; }
+.menu button::after { border: 0; }
+.version { text-align: center; color: #9aa3b2; font-size: 22rpx; }
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; }
+.dialog { width: 610rpx; text-align: center; }
+.heading { font-size: 32rpx; font-weight: 800; margin-bottom: 22rpx; }
+.body { max-height: 55vh; text-align: left; white-space: pre-wrap; line-height: 1.8; }
+.follow-image { width: 390rpx; display: block; margin: 20rpx auto; }

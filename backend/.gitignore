@@ -1,0 +1,7 @@
+# Keep the application source, locked dependencies and release builder in Git.
+# The root .gitignore excludes local credentials, data and generated output.
+/runtime/
+/safefile/
+/database/sqlite.db
+/public/upload/
+/public/uploads/

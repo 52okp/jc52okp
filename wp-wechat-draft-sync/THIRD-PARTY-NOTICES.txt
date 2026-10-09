@@ -1,0 +1,19 @@
+Moyu Green WeChat layout
+========================
+
+This plugin's Moyu Green renderer is adapted from:
+
+  https://github.com/52okp/gzh-design-skill
+  Revision: 5f7410c782fe22874960aba95a99ac4bcaac7f5f
+
+The repository is a fork of:
+
+  https://github.com/isjiamu/gzh-design-skill
+
+Copyright (C) 2026 Jiamu (甲木) and Moyu Xiaoli (摸鱼小李).
+Licensed under the GNU Affero General Public License, version 3 or later.
+
+The integration intentionally follows the fork's compatibility changes:
+the horizontal scrolling table of contents, English section subtitles and
+cover subtitle keyword row are not generated.
+

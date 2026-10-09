@@ -1,0 +1,1 @@
+<view class="page"><article-card wx:for="{{list}}" wx:key="id" article="{{item}}" bindopen="openArticle"/><view wx:if="{{loading}}" class="empty">加载中…</view><view wx:elif="{{!list.length}}" class="empty">还没有浏览记录</view></view>

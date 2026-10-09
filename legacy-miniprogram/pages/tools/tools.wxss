@@ -1,0 +1,66 @@
+.header {
+  padding: 12rpx 8rpx 28rpx;
+}
+.header .title {
+  font-size: 44rpx;
+  font-weight: 700;
+}
+
+.tool-name {
+  font-size: 34rpx;
+  font-weight: 600;
+}
+.tool-desc {
+  font-size: 27rpx;
+  color: #6b6b78;
+  margin: 10rpx 0;
+}
+.tool-tags {
+  margin-bottom: 12rpx;
+}
+
+.links {
+  border-top: 1rpx solid #f0f0f4;
+  margin-top: 12rpx;
+}
+.link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f5f5f8;
+}
+.link-row:last-child {
+  border-bottom: none;
+}
+.link-left {
+  display: flex;
+  flex-direction: column;
+}
+.link-type {
+  font-size: 29rpx;
+  font-weight: 500;
+}
+.link-code {
+  font-size: 24rpx;
+  color: #6c5ce7;
+  margin-top: 6rpx;
+}
+
+.copy-btn {
+  background: #6c5ce7;
+  color: #fff;
+  font-size: 26rpx;
+  border-radius: 12rpx;
+  padding: 0 28rpx;
+  margin: 0;
+}
+.copy-btn::after {
+  border: none;
+}
+
+.empty {
+  text-align: center;
+  color: #9a9aa8;
+  margin-top: 120rpx;
+}

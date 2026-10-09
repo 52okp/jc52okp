@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/tutorials/tutorials",
+    "pages/detail/detail",
+    "pages/tools/tools",
+    "pages/about/about"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#1f1f2e",
+    "navigationBarTitleText": "SD 教程站",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f4f4f8"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#6c5ce7",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/tutorials/tutorials",
+        "text": "教程"
+      },
+      {
+        "pagePath": "pages/tools/tools",
+        "text": "工具"
+      },
+      {
+        "pagePath": "pages/about/about",
+        "text": "关于"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,9 @@
+<view wx:if="{{article}}" class="page detail">
+  <view class="card"><view class="title">{{article.title}}</view><view class="muted">阅读 {{article.num_read}} · {{article.create_at}}</view></view>
+  <view class="card content"><rich-text nodes="{{article.content}}" selectable user-select/></view>
+  <view wx:if="{{article.links.length}}" class="card"><view class="section">📁 配套资料</view><view class="muted">由作者提供，自行前往网盘获取</view>
+    <view wx:for="{{article.links}}" wx:key="index" class="link"><view><view>{{item.type === '解压密码' ? '🔑 解压密码' : (item.type || '资料链接')}}</view><view wx:if="{{item.code}}" class="muted">访问码 {{item.code}}</view></view><button size="mini" class="primary" data-index="{{index}}" bindtap="copyLink">复制</button></view>
+    <view class="muted note">资料均来自网络或原作者，仅供学习交流；如有侵权请通过「关于我们」联系删除。</view>
+  </view>
+  <view class="actions"><button disabled="{{favoriteBusy}}" bindtap="favorite">{{article.favorited ? '★ 已收藏' : '☆ 收藏'}}</button></view>
+</view><view wx:else class="empty">{{loading ? '加载中…' : '内容不存在'}}</view>

@@ -1,0 +1,46 @@
+{extend name='table'}
+
+{block name="content"}
+<div class="layui-card">
+    <div class="layui-card-body">
+        <table id="MemberTable" data-url="{:sysuri('index')}"></table>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#MemberTable').layTable({
+            even: true, height: 'full',
+            sort: {field: 'id', type: 'desc'},
+            cols: [[
+                {field: 'id', title: 'ID', width: 80, align: 'center', sort: true},
+                {
+                    field: 'avatar', title: '头像', width: 70, align: 'center', templet: function (d) {
+                        if (!d.avatar) return '-';
+                        return layui.laytpl('<div class="headimg headimg-ss" data-tips-image data-lazy-src="{{d.avatar}}"></div>').render(d);
+                    }
+                },
+                {field: 'nickname', title: '昵称', minWidth: 140, templet: '<div>{{d.nickname||"微信用户"}}</div>'},
+                {field: 'openid', title: 'OpenID', minWidth: 220, templet: '<div>{{d.openid||"-"}}</div>'},
+                {field: 'status', title: '状态', align: 'center', width: 110, templet: '#StatusSwitchTpl'},
+                {field: 'login_at', title: '最后登录', align: 'center', width: 150, sort: true},
+                {field: 'create_at', title: '注册时间', align: 'center', width: 150, sort: true}
+            ]]
+        });
+        layui.form.on('switch(StatusSwitch)', function (obj) {
+            $.form.load("{:url('state')}", {id: obj.value, status: obj.elem.checked > 0 ? 1 : 0}, 'post', function () {
+                $('#MemberTable').trigger('reload');
+                return false;
+            }, false);
+        });
+    });
+</script>
+
+<script type="text/html" id="StatusSwitchTpl">
+    <!--{if auth("state")}-->
+    <input type="checkbox" value="{{d.id}}" lay-skin="switch" lay-text="正常|禁用" lay-filter="StatusSwitch" {{-d.status>0?'checked':''}}>
+    <!--{else}-->
+    {{-d.status ? '<b class="color-green">正常</b>' : '<b class="color-red">禁用</b>'}}
+    <!--{/if}-->
+</script>
+{/block}

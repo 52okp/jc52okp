@@ -1,0 +1,9 @@
+.detail { padding-bottom: 140rpx; }
+.title { font-size: 40rpx; font-weight: 800; line-height: 1.4; margin-bottom: 14rpx; }
+.content { line-height: 1.8; word-break: break-word; }
+.section { font-size: 32rpx; font-weight: 800; margin-bottom: 10rpx; }
+.link { display: flex; justify-content: space-between; align-items: center; padding: 26rpx 0; border-bottom: 1rpx solid #e5edfa; }
+.link button { margin: 0; }
+.note { font-size: 23rpx; margin-top: 18rpx; }
+.actions { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 15rpx 28rpx; }
+.actions button { color: #2f7bff; }
