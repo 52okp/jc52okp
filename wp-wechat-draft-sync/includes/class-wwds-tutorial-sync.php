@@ -62,6 +62,7 @@ final class WWDS_Tutorial_Sync
         add_action('admin_menu', array($this, 'menu'));
         add_action('admin_init', array($this, 'register_settings'));
         add_action('admin_post_wwds_tutorial_retry', array($this, 'retry'));
+        add_action('admin_post_wwds_tutorial_requeue', array($this, 'requeue'));
         add_action('admin_post_wwds_tutorial_import', array($this, 'import_batch'));
         add_action('admin_post_wwds_tutorial_process', array($this, 'process_now'));
         add_action('admin_post_wwds_tutorial_reset_import', array($this, 'reset_import'));
@@ -165,6 +166,35 @@ final class WWDS_Tutorial_Sync
         if ($post && $post->post_type === 'post') $this->enqueue($post_id, $post);
     }
 
+    private function sync_url($url)
+    {
+        $url = trim(html_entity_decode((string)$url, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        if ($url === '') return '';
+        if (strpos($url, '//') === 0) $url = 'https:' . $url;
+        elseif (strpos($url, '/') === 0) $url = home_url($url);
+        $parts = wp_parse_url($url);
+        $home_host = strtolower((string)wp_parse_url(home_url('/'), PHP_URL_HOST));
+        if ($parts && strtolower((string)($parts['scheme'] ?? '')) === 'http' &&
+            strtolower((string)($parts['host'] ?? '')) === $home_host) {
+            $url = 'https:' . substr($url, 5);
+        }
+        // WordPress can return UTF-8 media filenames. Encode their bytes without
+        // changing slashes, query separators, or already percent-encoded paths.
+        $url = preg_replace_callback('/[^\x21-\x7e]/', function ($match) {
+            return rawurlencode($match[0]);
+        }, $url);
+        return strlen($url) <= 500 && filter_var($url, FILTER_VALIDATE_URL) &&
+            strtolower((string)wp_parse_url($url, PHP_URL_SCHEME)) === 'https' ? $url : '';
+    }
+
+    private function sync_content_urls($html)
+    {
+        return preg_replace_callback('/\b(src|href)\s*=\s*(["\'])(.*?)\2/is', function ($match) {
+            $url = $this->sync_url($match[3]);
+            return $match[1] . '=' . $match[2] . esc_attr($url) . $match[2];
+        }, (string)$html);
+    }
+
     private function enqueue($post_id, $post, $force_unpublish = false)
     {
         global $wpdb;
@@ -195,15 +225,24 @@ final class WWDS_Tutorial_Sync
             $article = array(
                 'title' => html_entity_decode(get_the_title($post_id), ENT_QUOTES, 'UTF-8'),
                 'summary' => $post->post_excerpt ?: wp_trim_words(wp_strip_all_tags($post->post_content), 50),
-                'content' => $post->post_content,
-                'cover' => get_the_post_thumbnail_url($post_id, 'full') ?: '',
+                'content' => $this->sync_content_urls($post->post_content),
+                'cover' => $this->sync_url(get_the_post_thumbnail_url($post_id, 'full') ?: ''),
                 'categories' => $category_data,
                 'tags' => is_array($tags) ? $tags : array(),
-                'source_url' => get_permalink($post_id),
+                'source_url' => $this->sync_url(get_permalink($post_id)),
             );
             // Optional tutorial metadata is deliberately separate from _wwds_* draft state.
             $links = get_post_meta($post_id, '_wwds_tutorial_links', true);
-            if (is_array($links)) $article['links'] = $links;
+            if (is_array($links)) {
+                $article['links'] = array();
+                foreach ($links as $link) {
+                    if (!is_array($link)) continue;
+                    $url = $this->sync_url($link['url'] ?? '');
+                    if ($url === '') continue;
+                    $link['url'] = $url;
+                    $article['links'][] = $link;
+                }
+            }
             if (metadata_exists('post', $post_id, '_wwds_tutorial_unzip_code')) {
                 $article['unzip_code'] = (string)get_post_meta($post_id, '_wwds_tutorial_unzip_code', true);
             }
@@ -219,7 +258,13 @@ final class WWDS_Tutorial_Sync
             'action' => $action, 'payload' => wp_json_encode($event),
             'state' => 'queued', 'attempts' => 0, 'next_at' => time(), 'last_error' => '',
         ));
-        if ($inserted) $this->schedule();
+        if ($inserted) {
+            $wpdb->query($wpdb->prepare(
+                "UPDATE {$this->table()} SET state='superseded' WHERE post_id=%d AND id<%d AND state='queued'",
+                $post_id, $wpdb->insert_id
+            ));
+            $this->schedule();
+        }
         return (bool)$inserted;
     }
 
@@ -417,7 +462,7 @@ final class WWDS_Tutorial_Sync
                             <td><span class="wwds-tutorial-badge is-<?php echo esc_attr($status[1]); ?>"><?php echo esc_html($status[0]); ?></span></td>
                             <td><?php echo $row && $row->remote_article_id ? (int)$row->remote_article_id : '—'; ?></td>
                             <td><?php echo $row && $row->synced_at ? esc_html(wp_date('Y-m-d H:i:s', (int)$row->synced_at)) : '—'; ?><?php if ($row && $row->last_error) : ?><small class="wwds-tutorial-error"><?php echo esc_html($row->last_error); ?></small><?php endif; ?></td>
-                            <td><?php if ($row && $row->action === 'upsert' && $row->state === 'queued' && $row->attempts) : ?><a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_retry&id=' . $row->id), 'wwds_tutorial_retry_' . $row->id)); ?>">立即重试</a><?php else : ?>—<?php endif; ?></td>
+                            <td><?php if ($row && $row->action === 'upsert' && $row->state === 'queued' && $row->attempts) : ?><a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_requeue&post_id=' . $id), 'wwds_tutorial_requeue_' . $id)); ?>">重新生成并重试</a><?php else : ?>—<?php endif; ?></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$post_ids) : ?><tr><td colspan="6">当前分类没有符合条件的已发布文章。</td></tr><?php endif; ?>
@@ -482,8 +527,29 @@ final class WWDS_Tutorial_Sync
         $id = absint($_GET['id'] ?? 0);
         check_admin_referer('wwds_tutorial_retry_' . $id);
         global $wpdb;
+        $row = $wpdb->get_row($wpdb->prepare("SELECT post_id,action FROM {$this->table()} WHERE id=%d", $id));
+        if (!$row) wp_die('同步任务不存在。');
+        if ($row->action === 'upsert') {
+            $post = get_post((int)$row->post_id);
+            if (!$post || !$this->enqueue((int)$row->post_id, $post)) wp_die('无法重新生成同步任务。');
+            wp_safe_redirect(admin_url('admin.php?page=wwds-tutorial'));
+            exit;
+        }
         $wpdb->update($this->table(), array('state' => 'queued', 'next_at' => time()), array('id' => $id));
         $this->schedule();
+        wp_safe_redirect(admin_url('admin.php?page=wwds-tutorial'));
+        exit;
+    }
+
+    public function requeue()
+    {
+        if (!current_user_can('manage_options')) wp_die('无权操作');
+        $post_id = absint($_GET['post_id'] ?? 0);
+        check_admin_referer('wwds_tutorial_requeue_' . $post_id);
+        $post = get_post($post_id);
+        if (!$post || $post->post_type !== 'post' || $post->post_status !== 'publish' || !$this->enqueue($post_id, $post)) {
+            wp_die('无法重新入队，请检查文章状态、同步分类和排除列表。');
+        }
         wp_safe_redirect(admin_url('admin.php?page=wwds-tutorial'));
         exit;
     }
@@ -524,7 +590,7 @@ final class WWDS_Tutorial_Sync
             $prior = $latest[$id] ?? null;
             if ($prior && $prior->action === 'upsert' &&
                 (($prior->state === 'success' && (int)$prior->remote_article_id > 0) ||
-                in_array($prior->state, array('queued', 'sending'), true))) continue;
+                $prior->state === 'sending')) continue;
             $post = get_post((int)$id);
             if ($post && !$this->enqueue((int)$id, $post)) {
                 // Leave this article as the next candidate if the queue insert failed.
