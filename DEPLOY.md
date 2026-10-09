@@ -56,6 +56,6 @@
 
 ## WordPress 编辑器与封面兼容补丁（2026-10-09）
 
-已安装站点不要再次运行 `install.php`。本次增量文件是 `deploy-artifacts/backend-wordpress-compat-20261009.zip`（SHA-256：`478a0c4e049eb9722a31ff79d44ea0f94a5226e693610cc2cc42c5965fbc8ff2`），ZIP 内路径相对于后端站点根目录。先备份站点代码，再在宝塔中覆盖对应的 7 个文件；不会覆盖 `.env`、数据库、上传或运行目录。随后安装 `deploy-artifacts/wp-wechat-draft-sync-1.5.0.zip`（SHA-256：`d75a2100e562c84ab1c18dc79ea2ef817015e60934907f90878853576b286145`），配置保留。最后在 WordPress“教程同步”点击“刷新 WordPress 正文（下一批）”，每次最多 50 篇；如果之前执行过该功能，先点“重新开始正文刷新”。逐篇核对教程文章 ID 和错误列。
+已安装站点不要再次运行 `install.php`。本次增量文件是 `deploy-artifacts/backend-wordpress-compat-20261009.zip`（SHA-256：`733b8ae3c115d434c8030f1819e19b8771965a8c8d521172cb1f0fae503493f2`），ZIP 内路径相对于后端站点根目录。先备份站点代码，再在宝塔中覆盖对应的 7 个文件；不会覆盖 `.env`、数据库、上传或运行目录。随后安装 `deploy-artifacts/wp-wechat-draft-sync-1.5.0.zip`（SHA-256：`d75a2100e562c84ab1c18dc79ea2ef817015e60934907f90878853576b286145`），配置保留。最后在 WordPress“教程同步”点击“刷新 WordPress 正文（下一批）”，每次最多 50 篇；如果之前执行过该功能，先点“重新开始正文刷新”。逐篇核对教程文章 ID 和错误列。
 
-原生小程序源码 `miniprogram-native/` 的 WordPress 封面已改成完整比例展示；需要通过微信开发者工具重新上传小程序版本。真机访问外链图片前，核对微信公众平台允许的图片来源域名，至少检查实际使用的 `52okp.com` 和 `52okp.600867.xyz`。后端不会下载或重新托管 WordPress 图片。
+后台新上传的本地封面也保留原图比例，不再强制裁成正方形。原生小程序源码 `miniprogram-native/` 的文章封面已改成完整比例展示；需要通过微信开发者工具重新上传小程序版本。真机访问外链图片前，核对微信公众平台允许的图片来源域名，至少检查实际使用的 `52okp.com` 和 `52okp.600867.xyz`。后端不会下载或重新托管 WordPress 图片。

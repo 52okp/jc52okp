@@ -17,9 +17,9 @@
                     </div>
                     <div class="color-desc" style="margin-top:6px;">WordPress 原始比例封面</div>
                     {else}
-                    <div id="cover-box" class="cover-uploader" style="width:120px;height:120px;cursor:pointer;border:1px solid #e2e2ea;border-radius:8px;background:#f7f7f9 center/cover no-repeat;display:flex;align-items:center;justify-content:center;"></div>
+                    <div id="cover-box" class="cover-uploader"></div>
                     <input type="file" id="cover-file" accept="image/*" style="display:none">
-                    <div class="color-desc" style="margin-top:6px;">封面图 · 1:1 正方形</div>
+                    <div class="color-desc" style="margin-top:6px;">封面图 · 保留原图比例</div>
                     <div id="cover-clear" style="display:none;margin-top:4px;"><a href="javascript:;" style="color:#e54d42;font-size:12px;">删除封面</a></div>
                     {/if}
                 </div>
@@ -188,8 +188,8 @@
 
 <style>
     .cover-uploader {
-        width: 120px; height: 120px; margin: 0 auto; cursor: pointer;
-        border-radius: 8px; border: 1px solid #e2e2ea; background: #f7f7f9 center/cover no-repeat;
+        width: 180px; min-height: 120px; margin: 0 auto; cursor: pointer;
+        border-radius: 8px; border: 1px solid #e2e2ea; background: #f7f7f9;
         display: flex; align-items: center; justify-content: center; transition: border-color .2s;
     }
     .cover-uploader:hover { border-color: #6c5ce7; }
@@ -207,17 +207,17 @@
 </style>
 
 <script>
-    // 封面：交互式裁剪上传（拖动/缩放选择显示区域，再上传到后台存储=又拍云）
+    // Keep the image's original ratio and format when uploading a local cover.
     (function () {
         var $cover = $('[name=cover]'), $box = $('#cover-box'), $file = $('#cover-file'), $clear = $('#cover-clear');
 
         function preview() {
             var url = $cover.val();
             if (url) {
-                $box.css('background-image', 'url(' + encodeURI(url) + ')').html('');
+                $box.empty().append($('<img>', {src: url, alt: '封面预览'}).css({display: 'block', maxWidth: '100%', maxHeight: '220px', width: 'auto', height: 'auto', objectFit: 'contain'}));
                 $clear.show();
             } else {
-                $box.css('background-image', '').html('<span style="color:#9a9aa8;font-size:12px;">+ 上传封面</span>');
+                $box.html('<span style="color:#9a9aa8;font-size:12px;">+ 上传封面</span>');
                 $clear.hide();
             }
         }
@@ -235,42 +235,14 @@
         $file.on('change', function () {
             var f = this.files && this.files[0];
             if (!f) return;
-            var reader = new FileReader();
-            reader.onload = function (e) { openCrop(e.target.result); };
-            reader.readAsDataURL(f);
-        });
-
-        function openCrop(dataUrl) {
-            require(['cropper', 'upload'], function (Cropper) {
-                var cropper = null;
-                layui.layer.open({
-                    type: 1,
-                    title: '裁剪封面（拖动 / 滚轮缩放，框内为显示区域）',
-                    area: ['700px', '540px'],
-                    content: '<div style="padding:12px;background:#f7f7f9;height:430px;overflow:hidden;">'
-                        + '<img id="__cropimg" src="' + dataUrl + '" style="max-width:100%;display:block;"></div>',
-                    success: function (layero) {
-                        var img = layero.find('#__cropimg')[0];
-                        cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: 1, background: false });
-                    },
-                    btn: ['确定使用', '取消'],
-                    yes: function (idx) {
-                        if (!cropper) { layui.layer.close(idx); return; }
-                        cropper.getCroppedCanvas({ width: 800, height: 800, imageSmoothingQuality: 'high' }).toBlob(function (blob) {
-                            var file = new File([blob], 'cover_' + Date.now() + '.jpg', { type: 'image/jpeg' });
-                            var loading = layui.layer.load(2);
-                            new window.AdminUploadAdapter({ hide: true }).upload([file], function (url) {
-                                layui.layer.close(loading);
-                                if (url) { $cover.val(url); preview(); }
-                            });
-                            cropper.destroy(); cropper = null;
-                            layui.layer.close(idx);
-                        }, 'image/jpeg', 0.92);
-                    },
-                    cancel: function () { if (cropper) { cropper.destroy(); cropper = null; } }
+            require(['upload'], function () {
+                var loading = layui.layer.load(2);
+                new window.AdminUploadAdapter({ hide: true }).upload([f], function (url) {
+                    layui.layer.close(loading);
+                    if (url) { $cover.val(url); preview(); }
                 });
             });
-        }
+        });
     })();
 </script>
 

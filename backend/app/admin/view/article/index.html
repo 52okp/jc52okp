@@ -27,11 +27,8 @@
                 {
                     field: 'cover', title: '封面', width: 80, align: 'center', templet: function (d) {
                         if (!d.cover) return '-';
-                        if (d.source_type === 'wordpress') {
-                            var url = String(d.cover).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                            return '<img src="' + url + '" alt="WordPress 封面" style="width:42px;height:42px;object-fit:contain;background:#f4f6fa;border-radius:6px;">';
-                        }
-                        return layui.laytpl('<div class="headimg headimg-ss" data-tips-image data-lazy-src="{{d.cover}}"></div>').render(d);
+                        var url = String(d.cover).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        return '<img src="' + url + '" alt="文章封面" style="width:42px;height:42px;object-fit:contain;background:#f4f6fa;border-radius:6px;">';
                     }
                 },
                 {field: 'title', title: '文章标题', minWidth: 200, templet: '<div>{{d.title||"-"}}</div>'},
