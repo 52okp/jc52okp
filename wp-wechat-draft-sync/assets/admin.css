@@ -1,4 +1,4 @@
-body.toplevel_page_wwds #wpcontent { padding-left: 0; }
+body.toplevel_page_wwds #wpcontent,body[class*="_page_wwds-tutorial"] #wpcontent { padding-left: 0; }
 .wwds-console { --blue:#2563eb; --cyan:#06b6d4; --ink:#0f172a; --muted:#64748b; --line:#dbe3ef; margin:0; min-height:calc(100vh - 32px); background:#f6f8fb; color:var(--ink); }
 .wwds-topbar { height:56px; padding:0 42px; display:flex; align-items:center; justify-content:space-between; background:#fff; border-bottom:1px solid var(--line); box-sizing:border-box; }
 .wwds-brand { display:flex; align-items:center; gap:10px; font-size:14px; }
@@ -65,6 +65,29 @@ body.toplevel_page_wwds #wpcontent { padding-left: 0; }
 .wwds-form-footer .button-primary { min-height:38px; padding:4px 22px; border-radius:8px; background:#0f172a; border-color:#0f172a; }
 .wwds-notice-card { margin-top:18px; padding:16px 20px; border:1px solid #fde68a; border-radius:12px; background:#fffbeb; }
 .wwds-notice-card p { margin:5px 0 0; color:#92400e; }
+.wwds-tutorial .wwds-settings-form { margin-top:32px; }
+.wwds-tutorial .wwds-field-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:18px; }
+.wwds-tutorial .wwds-field-grid small { display:block; margin-top:7px; color:#64748b; }
+.wwds-tutorial-card { margin-top:24px; padding:24px; background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 1px 2px rgba(15,23,42,.04); }
+.wwds-tutorial-card .wwds-capability-head { margin-bottom:16px; }
+.wwds-tutorial-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; }
+.wwds-tutorial-actions form { margin:0; }
+.wwds-tutorial-actions .button { min-height:36px; display:inline-flex; align-items:center; border-radius:7px; }
+.wwds-tutorial-actions .button-primary { background:#2563eb; border-color:#2563eb; }
+.wwds-tutorial-card .description { margin:14px 0 0; color:#64748b; }
+.wwds-tutorial-table-wrap { overflow-x:auto; }
+.wwds-tutorial-table { min-width:850px; border:0; }
+.wwds-tutorial-table th,.wwds-tutorial-table td { padding:12px 10px; vertical-align:middle; }
+.wwds-tutorial-table td:first-child { max-width:340px; }
+.wwds-tutorial-table td:first-child a { font-weight:600; text-decoration:none; }
+.wwds-tutorial-table small { display:block; margin-top:4px; color:#94a3b8; }
+.wwds-tutorial-table .wwds-tutorial-error { max-width:320px; color:#b42318; overflow-wrap:anywhere; }
+.wwds-tutorial-badge { display:inline-block; white-space:nowrap; padding:5px 9px; border-radius:999px; font-size:12px; font-weight:600; }
+.wwds-tutorial-badge.is-success { color:#047857; background:#d1fae5; }
+.wwds-tutorial-badge.is-pending { color:#1d4ed8; background:#dbeafe; }
+.wwds-tutorial-badge.is-warning { color:#92400e; background:#fef3c7; }
+.wwds-tutorial-badge.is-error { color:#b42318; background:#fee4e2; }
+.wwds-tutorial-badge.is-muted { color:#475569; background:#e2e8f0; }
 @media (max-width:1100px) { .wwds-stats { grid-template-columns:1fr 1fr; } .wwds-account-grid { grid-template-columns:1fr; } }
-@media (max-width:782px) { body.toplevel_page_wwds #wpcontent { padding-left:0; } .wwds-topbar { padding:0 18px; } .wwds-main { padding:25px 16px 50px; } .wwds-doc-link,.wwds-divider,.wwds-brand > span:last-child { display:none; } .wwds-overview { grid-template-columns:1fr; } .wwds-overview-side { border-left:0; border-top:1px solid var(--line); } .wwds-stats { grid-template-columns:1fr 1fr; } .wwds-field-grid { grid-template-columns:1fr; } .wwds-field-grid label.is-wide { grid-column:auto; } .wwds-capability-head,.wwds-form-footer { align-items:flex-start; gap:15px; flex-direction:column; } }
+@media (max-width:782px) { body.toplevel_page_wwds #wpcontent,body[class*="_page_wwds-tutorial"] #wpcontent { padding-left:0; } .wwds-topbar { padding:0 18px; } .wwds-main { padding:25px 16px 50px; } .wwds-doc-link,.wwds-divider,.wwds-brand > span:last-child { display:none; } .wwds-overview { grid-template-columns:1fr; } .wwds-overview-side { border-left:0; border-top:1px solid var(--line); } .wwds-stats { grid-template-columns:1fr 1fr; } .wwds-field-grid { grid-template-columns:1fr; } .wwds-field-grid label.is-wide { grid-column:auto; } .wwds-capability-head,.wwds-form-footer { align-items:flex-start; gap:15px; flex-direction:column; } .wwds-tutorial-card { padding:16px; } }
 

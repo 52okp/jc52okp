@@ -51,7 +51,7 @@ final class WWDS_Plugin
 
     public function admin_assets($hook)
     {
-        if ($hook !== 'toplevel_page_wwds') {
+        if ($hook !== 'toplevel_page_wwds' && strpos($hook, '_page_wwds-tutorial') === false) {
             return;
         }
         wp_enqueue_style('wwds-admin', plugins_url('assets/admin.css', WWDS_FILE), array(), WWDS_VERSION);

@@ -3,7 +3,7 @@ Contributors: 52okp
 Tags: wechat, official account, draft, sync
 Requires at least: 5.8
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: AGPLv3 or later
 
 Automatically creates or updates a WeChat Official Account draft whenever a WordPress post is published or updated.
@@ -28,6 +28,12 @@ Supports multiple Official Accounts with independent WordPress category routing.
 * The built-in Moyu Green renderer is adapted from 52okp/gzh-design-skill and its upstream project by Jiamu and Moyu Xiaoli under AGPL-3.0. See THIRD-PARTY-NOTICES.txt.
 
 == Changelog ==
+
+= 1.4.1 =
+* Restyle the tutorial sync page to match the publishing console and show per-article backend confirmation IDs.
+* Limit historical batches to selected categories, avoid unrelated unpublish tasks, and add a fresh scan cursor.
+* Show legacy task deliveries as unverified until the backend confirms an article ID.
+* Add a manual queue runner and an exclusion list for articles already present in the legacy tutorial library.
 
 = 1.4.0 =
 * Add independent tutorial backend synchronization with a signed queue, category routing, and batched historical import.
