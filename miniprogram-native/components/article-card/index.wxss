@@ -1,5 +1,6 @@
 .card { background: #fff; border-radius: 24rpx; padding: 20rpx; margin-bottom: 20rpx; display: flex; align-items: center; gap: 20rpx; }
 .article-cover { width: 150rpx; height: 150rpx; border-radius: 18rpx; flex-shrink: 0; background: #d4e6ff; }
+.wordpress-cover { width: 180rpx; height: auto; background: #f4f6fa; }
 .fallback { display: flex; align-items: center; justify-content: center; color: #2f7bff; font-size: 42rpx; font-weight: 800; }
 .article-body { flex: 1; min-width: 0; }
 .article-title { font-size: 30rpx; font-weight: 700; }

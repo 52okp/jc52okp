@@ -155,7 +155,7 @@ class Member extends Base
             ->where('f.member_id', $m->id)->where('a.is_deleted', 0)->where('a.status', 1)
             ->whereRaw("(a.source_type = 'local' OR a.source_state = 'published')")
             ->order('f.id desc')
-            ->field('a.id,a.title,a.cover,a.summary,a.num_read')
+            ->field('a.id,a.title,a.cover,a.summary,a.num_read,a.source_type')
             ->select()->toArray();
         return $this->ok($rows);
     }
@@ -173,7 +173,7 @@ class Member extends Base
             ->where('h.member_id', $m->id)->where('a.is_deleted', 0)->where('a.status', 1)
             ->whereRaw("(a.source_type = 'local' OR a.source_state = 'published')")
             ->order('h.update_at desc,h.id desc')
-            ->field('a.id,a.title,a.cover,a.summary,a.num_read,h.update_at')
+            ->field('a.id,a.title,a.cover,a.summary,a.num_read,a.source_type,h.update_at')
             ->select()->toArray();
         return $this->ok($rows);
     }

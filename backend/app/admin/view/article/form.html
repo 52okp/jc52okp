@@ -1,7 +1,7 @@
 <form action="{:sysuri()}" method="post" data-auto="true" class="layui-form layui-card" data-table-id="ArticleTable">
     <div class="layui-card-body padding-left-40">
         {if isset($vo['source_type']) && $vo['source_type'] === 'wordpress'}
-        <div class="layui-bg-orange" style="padding:12px;margin-bottom:16px;">本文内容来自 WordPress。标题、正文、分类和资料由来源站维护；这里只保存推荐、排序等本地运营设置。</div>
+        <div class="layui-bg-orange" style="padding:12px;margin-bottom:16px;">本文内容来自 WordPress，封面和正文按来源格式展示；请在 WordPress 编辑内容，这里只保存推荐、排序等本地运营设置。{if !empty($wpSourceUrl)}<a href="{$wpSourceUrl}" target="_blank" rel="noopener noreferrer" style="margin-left:8px;text-decoration:underline;">查看来源文章 ↗</a>{/if}</div>
         {/if}
 
         <fieldset class="layui-bg-gray">
@@ -11,10 +11,17 @@
                 <!-- 封面 -->
                 <div style="flex:0 0 auto;text-align:center;">
                     <input type="hidden" name="cover" value="{$vo.cover|default=''}">
+                    {if isset($vo['source_type']) && $vo['source_type'] === 'wordpress'}
+                    <div style="width:180px;min-height:120px;display:flex;align-items:center;justify-content:center;border:1px solid #e2e2ea;border-radius:8px;background:#f7f7f9;overflow:hidden;">
+                        {if !empty($vo['cover'])}<img src="{$vo.cover}" alt="WordPress 原始封面" style="display:block;max-width:100%;max-height:220px;width:auto;height:auto;object-fit:contain;">{else}<span class="color-desc">WordPress 未设置封面</span>{/if}
+                    </div>
+                    <div class="color-desc" style="margin-top:6px;">WordPress 原始比例封面</div>
+                    {else}
                     <div id="cover-box" class="cover-uploader" style="width:120px;height:120px;cursor:pointer;border:1px solid #e2e2ea;border-radius:8px;background:#f7f7f9 center/cover no-repeat;display:flex;align-items:center;justify-content:center;"></div>
                     <input type="file" id="cover-file" accept="image/*" style="display:none">
                     <div class="color-desc" style="margin-top:6px;">封面图 · 1:1 正方形</div>
                     <div id="cover-clear" style="display:none;margin-top:4px;"><a href="javascript:;" style="color:#e54d42;font-size:12px;">删除封面</a></div>
+                    {/if}
                 </div>
                 <!-- 右侧字段 -->
                 <div style="flex:1;min-width:0;">
@@ -66,7 +73,13 @@
                 <input type="file" id="md-import-file" accept=".md,.markdown,text/markdown,text/plain" style="display:none">
                 <span class="color-desc margin-left-10">上传 .md 文件自动识别标题/标签/摘要/正文（支持文件头 frontmatter）</span>
             </legend>
+            {if isset($vo['source_type']) && $vo['source_type'] === 'wordpress'}
+            <textarea name="content" id="article-content" class="layui-textarea" style="display:none;">{$vo.content|default=''}</textarea>
+            <iframe id="wp-content-preview" title="WordPress 正文预览" sandbox="" style="width:100%;min-height:420px;border:1px solid #e2e2ea;border-radius:8px;background:#fff;"></iframe>
+            <p class="color-desc">此处预览已同步的安全正文；实际编辑请在 WordPress 完成。</p>
+            {else}
             <textarea name="content" id="article-content" class="layui-textarea">{$vo.content|default=''}</textarea>
+            {/if}
         </fieldset>
 
         <fieldset class="layui-bg-gray">
@@ -137,6 +150,8 @@
         });
 
         if (fromWordpress) {
+            var frame = document.getElementById('wp-content-preview');
+            if (frame) frame.srcdoc = '<!doctype html><meta charset="utf-8"><style>body{font:15px/1.7 sans-serif;color:#334155;padding:18px;overflow-wrap:anywhere}img{max-width:100%;height:auto}table{width:100%;border-collapse:collapse}td,th{border:1px solid #cbd5e1;padding:6px}pre{white-space:pre-wrap}</style>' + ($('#article-content').val() || '');
             $('[name=title],[name=category_id],[name=tags],[name=summary],[name=content],'
                 + '[name=cover],[name=unzip_code],[name="link_type[]"],'
                 + '[name="link_url[]"],[name="link_code[]"]').prop('disabled', true);

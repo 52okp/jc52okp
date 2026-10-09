@@ -39,7 +39,7 @@ class Home extends Base
             ->where(['is_deleted' => 0, 'status' => 1, 'is_recommend' => 1])
             ->whereRaw("(source_type = 'local' OR source_state = 'published')")
             ->order('sort desc,id desc')
-            ->field('id,title,cover,tags,summary,num_read,create_at')
+            ->field('id,title,cover,tags,summary,num_read,source_type,create_at')
             ->limit(10)->select()->toArray();
 
         foreach ($recommend as &$row) {

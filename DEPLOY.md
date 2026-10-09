@@ -22,7 +22,7 @@
 
 本地首发包由 `backend/scripts/build-first-deploy.php` 生成，包含后端代码、`vendor/`、迁移、公共资源及 `public/install.php`，不含 `.env`、数据库、运行数据和上传数据。将包解压到 `<SITE_ROOT>`，确认 `<SITE_ROOT>/public/index.php`、`<SITE_ROOT>/public/install.php` 和 `<SITE_ROOT>/vendor/autoload.php` 存在。不要把整个 `backend/` 原样上传。
 
-当前使用的后端包位于 `deploy-artifacts/backend-web-install-20261009-v4-edgeone.zip`，SHA-256 为 `3512aa280b272527d1731ea5d25970fd38b10e2871efbf92d7ce74c2e698adeb`。插件包位于 `deploy-artifacts/wp-wechat-draft-sync-1.4.0.zip`，SHA-256 为 `a379119245f8732f21d09d7512ab0c8bfff7d3beb8731189d105ea21d46c28e9`。上传后可在宝塔核对文件哈希。
+首次安装时使用的历史后端包是 `deploy-artifacts/backend-web-install-20261009-v4-edgeone.zip`，SHA-256 为 `3512aa280b272527d1731ea5d25970fd38b10e2871efbf92d7ce74c2e698adeb`。已安装站点的 WordPress 兼容更新见文末增量补丁，不要重新运行安装器。
 
 第一次打开 `https://jc.52okp.com/install.php` 时，如果 EdgeOne 使用 HTTP 回源，安装器会在站点根目录生成 `.install-edgeone-key`，并提示配置回源请求头。在宝塔文件管理器读取该文件的值，**不要发在聊天里**；到 EdgeOne 规则引擎将匹配类型设为 `HOST = jc.52okp.com`，在“操作”中选择“修改 HTTP 回源请求头”，类型选“设置”、头部名称选“自定义”并填写 `X-52OKP-Install-Key`，头部值填该文件内容。EdgeOne 默认携带 `X-Forwarded-Proto`，安装器会同时核对访客协议、EdgeOne 标记及临时密钥。保存并发布规则后刷新安装页即可继续。
 
@@ -53,3 +53,9 @@
 ## 回退与更新边界
 
 若新站验收失败，暂停新站与 WordPress 教程同步，旧站和旧库保持原样；修复新站或从迁移前备份重建新库。不要用旧 SQL 覆盖仍在运行的旧库。52okp 更新中心目前未为本项目注册独立项目，后台没有安装、备份、切换和恢复任务，首次部署及当前后续升级都需要人工处理。
+
+## WordPress 编辑器与封面兼容补丁（2026-10-09）
+
+已安装站点不要再次运行 `install.php`。本次增量文件是 `deploy-artifacts/backend-wordpress-compat-20261009.zip`（SHA-256：`478a0c4e049eb9722a31ff79d44ea0f94a5226e693610cc2cc42c5965fbc8ff2`），ZIP 内路径相对于后端站点根目录。先备份站点代码，再在宝塔中覆盖对应的 7 个文件；不会覆盖 `.env`、数据库、上传或运行目录。随后安装 `deploy-artifacts/wp-wechat-draft-sync-1.5.0.zip`（SHA-256：`d75a2100e562c84ab1c18dc79ea2ef817015e60934907f90878853576b286145`），配置保留。最后在 WordPress“教程同步”点击“刷新 WordPress 正文（下一批）”，每次最多 50 篇；如果之前执行过该功能，先点“重新开始正文刷新”。逐篇核对教程文章 ID 和错误列。
+
+原生小程序源码 `miniprogram-native/` 的 WordPress 封面已改成完整比例展示；需要通过微信开发者工具重新上传小程序版本。真机访问外链图片前，核对微信公众平台允许的图片来源域名，至少检查实际使用的 `52okp.com` 和 `52okp.600867.xyz`。后端不会下载或重新托管 WordPress 图片。

@@ -8,6 +8,7 @@ use app\model\Article as ArticleModel;
 use app\model\ArticleCategory;
 use think\admin\Controller;
 use think\admin\helper\QueryHelper;
+use think\facade\Db;
 
 /**
  * 教程文章管理
@@ -175,6 +176,10 @@ class Article extends Controller
                 empty($data['title']) && $this->error('文章标题不能为空！');
             }
         } else {
+            $articleId = (int)($data['id'] ?? $this->request->get('id', 0));
+            $this->wpSourceUrl = $articleId > 0
+                ? (string)Db::name('wp_sync_post')->where('article_id', $articleId)->value('source_url')
+                : '';
             // 编辑/新增表单：加载分类下拉
             $this->categories = ArticleCategory::mk()
                 ->where(['is_deleted' => 0, 'status' => 1])

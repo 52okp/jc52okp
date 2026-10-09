@@ -1,4 +1,5 @@
 <view wx:if="{{article}}" class="page detail">
+  <image wx:if="{{article.source_type === 'wordpress' && article.cover}}" class="wp-featured" src="{{article.cover}}" mode="widthFix"/>
   <view class="card"><view class="title">{{article.title}}</view><view class="muted">阅读 {{article.num_read}} · {{article.create_at}}</view></view>
   <view class="card content"><rich-text nodes="{{article.content}}" selectable user-select/></view>
   <view wx:if="{{article.links.length}}" class="card"><view class="section">📁 配套资料</view><view class="muted">由作者提供，自行前往网盘获取</view>

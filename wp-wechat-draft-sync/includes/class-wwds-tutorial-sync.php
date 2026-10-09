@@ -11,6 +11,7 @@ final class WWDS_Tutorial_Sync
     const CRON = 'wwds_tutorial_process';
     const CAPTURE = 'wwds_tutorial_capture';
     const IMPORT_CURSOR = 'wwds_tutorial_selected_import_cursor_v2';
+    const REFRESH_CURSOR = 'wwds_tutorial_format_refresh_cursor_v1';
     private static $instance;
 
     public static function instance()
@@ -66,6 +67,8 @@ final class WWDS_Tutorial_Sync
         add_action('admin_post_wwds_tutorial_import', array($this, 'import_batch'));
         add_action('admin_post_wwds_tutorial_process', array($this, 'process_now'));
         add_action('admin_post_wwds_tutorial_reset_import', array($this, 'reset_import'));
+        add_action('admin_post_wwds_tutorial_refresh', array($this, 'refresh_batch'));
+        add_action('admin_post_wwds_tutorial_reset_refresh', array($this, 'reset_refresh'));
         add_action('add_meta_boxes_post', array($this, 'add_meta_box'));
     }
 
@@ -195,6 +198,27 @@ final class WWDS_Tutorial_Sync
         }, (string)$html);
     }
 
+    private function rendered_content($post)
+    {
+        $previous = $GLOBALS['post'] ?? null;
+        $GLOBALS['post'] = $post;
+        setup_postdata($post);
+        try {
+            // Render Gutenberg blocks, shortcodes and Classic Editor filters
+            // before converting URLs for the tutorial app.
+            $html = apply_filters('the_content', (string)$post->post_content);
+            return is_string($html) ? $html : (string)$post->post_content;
+        } finally {
+            if ($previous instanceof \WP_Post) {
+                $GLOBALS['post'] = $previous;
+                setup_postdata($previous);
+            } else {
+                wp_reset_postdata();
+                unset($GLOBALS['post']);
+            }
+        }
+    }
+
     private function enqueue($post_id, $post, $force_unpublish = false)
     {
         global $wpdb;
@@ -222,10 +246,11 @@ final class WWDS_Tutorial_Sync
             foreach ($terms as $term) $category_data[] = array('id' => (int)$term->term_id, 'name' => $term->name);
             usort($category_data, function ($a, $b) { return $a['id'] <=> $b['id']; });
             $tags = wp_get_post_tags($post_id, array('fields' => 'names'));
+            $rendered = $this->rendered_content($post);
             $article = array(
                 'title' => html_entity_decode(get_the_title($post_id), ENT_QUOTES, 'UTF-8'),
-                'summary' => $post->post_excerpt ?: wp_trim_words(wp_strip_all_tags($post->post_content), 50),
-                'content' => $this->sync_content_urls($post->post_content),
+                'summary' => $post->post_excerpt ?: wp_trim_words(wp_strip_all_tags($rendered), 50),
+                'content' => $this->sync_content_urls($rendered),
                 'cover' => $this->sync_url(get_the_post_thumbnail_url($post_id, 'full') ?: ''),
                 'categories' => $category_data,
                 'tags' => is_array($tags) ? $tags : array(),
@@ -409,6 +434,7 @@ final class WWDS_Tutorial_Sync
         $excluded = array_map('intval', (array)$settings['excluded_post_ids']);
         $tasks = $this->latest_tasks($post_ids);
         $cursor = (int)get_option(self::IMPORT_CURSOR, 0);
+        $refresh_cursor = (int)get_option(self::REFRESH_CURSOR, 0);
         $counts = array('success' => 0, 'pending' => 0, 'attention' => 0, 'excluded' => 0);
         foreach ($post_ids as $id) {
             $status = $this->task_status($tasks[$id] ?? null, in_array($id, $excluded, true));
@@ -450,8 +476,8 @@ final class WWDS_Tutorial_Sync
                 </form>
 
                 <section class="wwds-tutorial-card"><div class="wwds-capability-head"><div><h2>历史文章补齐</h2><p>从头按已选分类扫描，已确认同步的文章不会重复入队。</p></div></div>
-                    <div class="wwds-tutorial-actions"><a class="button button-primary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_import'), 'wwds_tutorial_import')); ?>">入队下一批（最多 50 篇）</a><a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_reset_import'), 'wwds_tutorial_reset_import')); ?>">从头重新扫描</a><form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"><input type="hidden" name="action" value="wwds_tutorial_process"><?php wp_nonce_field('wwds_tutorial_process'); ?><button type="submit" class="button">立即处理待发送（最多 10 条）</button></form></div>
-                    <p class="description">重新扫描只重置扫描位置，不会删除教程后台文章；已排除的 WordPress ID 不会入队。</p>
+                    <div class="wwds-tutorial-actions"><a class="button button-primary" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_import'), 'wwds_tutorial_import')); ?>">入队下一批（最多 50 篇）</a><a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_reset_import'), 'wwds_tutorial_reset_import')); ?>">从头重新扫描</a><a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_refresh'), 'wwds_tutorial_refresh')); ?>">刷新 WordPress 正文（下一批）</a><a class="button" href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_reset_refresh'), 'wwds_tutorial_reset_refresh')); ?>">重新开始正文刷新</a><form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"><input type="hidden" name="action" value="wwds_tutorial_process"><?php wp_nonce_field('wwds_tutorial_process'); ?><button type="submit" class="button">立即处理待发送（最多 10 条）</button></form></div>
+                    <p class="description">正文刷新进度 <?php echo esc_html(count(array_filter($post_ids, function ($id) use ($refresh_cursor) { return $id <= $refresh_cursor; })) . ' / ' . count($post_ids)); ?>。已映射的文章更新原记录，尚未同步的文章会新建；已排除的 WordPress ID 不会入队。</p>
                 </section>
 
                 <section class="wwds-tutorial-card"><div class="wwds-capability-head"><div><h2>逐篇同步状态</h2><p>状态来自最新任务；“已同步到教程后台”必须显示后端文章 ID。</p></div><a class="button" href="<?php echo esc_url(admin_url('admin.php?page=wwds-tutorial')); ?>">刷新状态</a></div>
@@ -568,6 +594,37 @@ final class WWDS_Tutorial_Sync
         if (!current_user_can('manage_options')) wp_die('无权操作');
         check_admin_referer('wwds_tutorial_reset_import');
         update_option(self::IMPORT_CURSOR, 0, false);
+        wp_safe_redirect(admin_url('admin.php?page=wwds-tutorial'));
+        exit;
+    }
+
+    public function reset_refresh()
+    {
+        if (!current_user_can('manage_options')) wp_die('无权操作');
+        check_admin_referer('wwds_tutorial_reset_refresh');
+        update_option(self::REFRESH_CURSOR, 0, false);
+        wp_safe_redirect(admin_url('admin.php?page=wwds-tutorial'));
+        exit;
+    }
+
+    public function refresh_batch()
+    {
+        if (!current_user_can('manage_options')) wp_die('无权操作');
+        check_admin_referer('wwds_tutorial_refresh');
+        $settings = $this->settings();
+        if (!$settings['enabled'] || !$settings['endpoint'] || !$settings['site_id'] || strlen($settings['secret']) < 32 || !$settings['categories']) {
+            wp_die('请先保存完整的教程同步配置和分类。');
+        }
+        $cursor = (int)get_option(self::REFRESH_CURSOR, 0);
+        $ids = $this->selected_posts($settings, $cursor, 50);
+        foreach ($ids as $id) {
+            $post = get_post($id);
+            if ($post && !$this->enqueue($id, $post)) {
+                if (!in_array($id, array_map('intval', (array)$settings['excluded_post_ids']), true)) break;
+            }
+            $cursor = $id;
+        }
+        update_option(self::REFRESH_CURSOR, $cursor, false);
         wp_safe_redirect(admin_url('admin.php?page=wwds-tutorial'));
         exit;
     }

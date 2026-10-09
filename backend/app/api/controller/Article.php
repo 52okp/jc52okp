@@ -40,7 +40,7 @@ class Article extends Base
         if ($recommend !== '') $query->where('is_recommend', 1);
 
         $res = $query->order('sort desc,id desc')
-            ->field('id,title,cover,tags,summary,num_read,category_id,create_at')
+            ->field('id,title,cover,tags,summary,num_read,category_id,source_type,create_at')
             ->paginate(['list_rows' => $limit, 'page' => $page]);
 
         $items = [];

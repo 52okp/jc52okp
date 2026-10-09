@@ -159,24 +159,67 @@ final class WordpressSync
 
     private function safeUrl(string $url): string
     {
+        $url = trim($url);
         if ($url === '') return '';
         if (str_starts_with($url, '//')) $url = 'https:' . $url;
+        // WordPress media URLs can contain UTF-8 filenames. Encode only bytes
+        // outside the printable URL range so existing %XX escapes remain intact.
+        $url = preg_replace_callback('/[^\x21-\x7e]/', static fn (array $m): string => rawurlencode($m[0]), $url);
         if (strlen($url) > 500 || !filter_var($url, FILTER_VALIDATE_URL) || strtolower((string)parse_url($url, PHP_URL_SCHEME)) !== 'https') {
             throw new RuntimeException('image or source URL must be absolute HTTPS');
         }
         return $url;
     }
 
+    private function editorStyles(string $raw): string
+    {
+        $safe = [];
+        foreach (explode(';', $raw) as $declaration) {
+            if (!str_contains($declaration, ':')) continue;
+            [$property, $value] = array_map('trim', explode(':', $declaration, 2));
+            $property = strtolower($property);
+            if (preg_match('/^(color|background-color)$/', $property) &&
+                preg_match('/^#[0-9a-f]{3,8}$/i', $value)) {
+                $safe[] = "$property:$value";
+            } elseif ($property === 'text-align' && in_array($value, ['left', 'right', 'center', 'justify'], true)) {
+                $safe[] = "$property:$value";
+            } elseif ($property === 'font-size' && preg_match('/^(?:[0-9]{1,3}(?:\.[0-9]{1,2})?)(?:px|em|rem|%)$/', $value)) {
+                $safe[] = "$property:$value";
+            } elseif ($property === 'font-weight' && preg_match('/^(?:normal|bold|[1-9]00)$/', $value)) {
+                $safe[] = "$property:$value";
+            } elseif ($property === 'font-style' && in_array($value, ['normal', 'italic'], true)) {
+                $safe[] = "$property:$value";
+            } elseif ($property === 'text-decoration' && in_array($value, ['none', 'underline', 'line-through'], true)) {
+                $safe[] = "$property:$value";
+            }
+        }
+        return implode(';', $safe);
+    }
+
     private function cleanHtml(string $html): string
     {
         $doc = new \DOMDocument('1.0', 'UTF-8');
         $prior = libxml_use_internal_errors(true);
-        $doc->loadHTML('<?xml encoding="UTF-8"><div id="sync-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $doc->loadHTML('<?xml encoding="UTF-8"><div id="sync-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET);
         libxml_clear_errors();
         libxml_use_internal_errors($prior);
-        $allowed = ['p', 'br', 'h1', 'h2', 'h3', 'h4', 'strong', 'em', 'b', 'i', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'a', 'img', 'div', 'span', 'figure', 'figcaption', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'];
+        $allowed = ['p', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'b', 'i', 'u', 's', 'del', 'mark', 'sup', 'sub', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'a', 'img', 'div', 'span', 'figure', 'figcaption', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'];
         $dangerous = ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'svg', 'math'];
-        $walk = function (\DOMNode $node) use (&$walk, $allowed, $dangerous): void {
+        $styles = [
+            'p' => 'margin:0 0 1em;', 'h1' => 'font-size:1.55em;font-weight:bold;margin:1.2em 0 .5em;',
+            'h2' => 'font-size:1.4em;font-weight:bold;margin:1.2em 0 .5em;',
+            'h3' => 'font-size:1.2em;font-weight:bold;margin:1em 0 .45em;',
+            'h4' => 'font-size:1.1em;font-weight:bold;margin:1em 0 .4em;',
+            'figure' => 'margin:1em 0;', 'figcaption' => 'font-size:.85em;color:#64748b;text-align:center;',
+            'img' => 'max-width:100%;height:auto;display:block;margin:0 auto;',
+            'blockquote' => 'border-left:3px solid #93c5fd;padding-left:12px;margin:1em 0;color:#475569;',
+            'pre' => 'white-space:pre-wrap;word-break:break-word;background:#f1f5f9;padding:12px;',
+            'table' => 'width:100%;border-collapse:collapse;table-layout:fixed;word-break:break-word;',
+            'td' => 'border:1px solid #cbd5e1;padding:6px;',
+            'th' => 'border:1px solid #cbd5e1;padding:6px;font-weight:bold;',
+            'a' => 'color:#2563eb;', 'hr' => 'border:0;border-top:1px solid #cbd5e1;margin:1em 0;',
+        ];
+        $walk = function (\DOMNode $node) use (&$walk, $allowed, $dangerous, $styles): void {
             foreach (iterator_to_array($node->childNodes) as $child) {
                 if (!$child instanceof \DOMElement) continue;
                 $tag = strtolower($child->tagName);
@@ -187,14 +230,40 @@ final class WordpressSync
                     $node->removeChild($child);
                     continue;
                 }
+                $class = $child->getAttribute('class');
+                $sourceStyle = $this->editorStyles($child->getAttribute('style'));
+                $src = $tag === 'img' ? $child->getAttribute('src') : '';
+                $lazySrc = $tag === 'img' ? $child->getAttribute('data-src') : '';
+                $alt = $tag === 'img' ? $child->getAttribute('alt') : '';
+                $href = $tag === 'a' ? $child->getAttribute('href') : '';
                 foreach (iterator_to_array($child->attributes) as $attr) {
-                    if (($tag === 'img' && $attr->name === 'src') || ($tag === 'a' && $attr->name === 'href')) {
-                        try { $child->setAttribute($attr->name, $this->safeUrl($attr->value)); }
-                        catch (RuntimeException $e) { $child->removeAttribute($attr->name); }
-                    } else {
-                        $child->removeAttribute($attr->name);
-                    }
+                    $child->removeAttribute($attr->name);
                 }
+                if ($tag === 'img') {
+                    foreach ([$src, $lazySrc] as $candidate) {
+                        if ($candidate === '') continue;
+                        try {
+                            $child->setAttribute('src', $this->safeUrl($candidate));
+                            break;
+                        } catch (RuntimeException $e) { /* Try the lazy-load URL. */ }
+                    }
+                    if ($alt !== '') $child->setAttribute('alt', mb_substr($alt, 0, 200));
+                }
+                if ($tag === 'a' && $href !== '') {
+                    try { $child->setAttribute('href', $this->safeUrl($href)); }
+                    catch (RuntimeException $e) { /* Keep link text, drop unsafe target. */ }
+                }
+                $style = $styles[$tag] ?? '';
+                if ($tag === 'div' && str_contains($class, 'wp-block-columns')) $style = 'display:flex;flex-wrap:wrap;gap:12px;';
+                if ($tag === 'div' && str_contains($class, 'wp-block-column')) $style = 'flex:1 1 45%;min-width:0;';
+                if ($tag === 'figure' && str_contains($class, 'wp-block-gallery')) $style = 'display:flex;flex-wrap:wrap;gap:8px;margin:1em 0;';
+                if ($tag === 'mark') $style = 'background:#fef08a;';
+                if (preg_match('/(?:^|\s)has-text-align-(left|right|center|justify)(?:\s|$)/', $class, $alignment)) {
+                    $style .= 'text-align:' . $alignment[1] . ';';
+                }
+                if (preg_match('/(?:^|\s)aligncenter(?:\s|$)/', $class)) $style .= 'text-align:center;margin-left:auto;margin-right:auto;';
+                if ($sourceStyle !== '') $style .= $sourceStyle . ';';
+                if ($style !== '') $child->setAttribute('style', $style);
                 $walk($child);
             }
         };
