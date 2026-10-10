@@ -14,7 +14,9 @@ if (!preg_match('~<script>(.*?)</script>~s', $content, $match)) {
     throw new RuntimeException('Update page script is missing');
 }
 $script = preg_replace('~<\?php.*?\?>~s', '"token"', $match[1]);
-if (substr_count($script, '$.ajax(') !== 3 || str_contains($script, '<?php')) {
+if (substr_count($script, '$.ajax(') !== 4 || str_contains($script, '<?php') ||
+    !str_contains($content, "data-token-url=\"<?php echo url('token'); ?>\"") ||
+    !str_contains($script, "_token_: response.data.token")) {
     throw new RuntimeException('Template parser damaged update page requests');
 }
 $process = proc_open(['node', '--check'], [

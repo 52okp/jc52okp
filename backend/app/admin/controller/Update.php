@@ -52,6 +52,17 @@ class Update extends Controller
     }
 
     /**
+     * 为每次安装尝试生成新的表单令牌，避免失败重试使用已消耗的令牌。
+     * @auth true
+     */
+    public function token()
+    {
+        if (!$this->request->isGet()) $this->error('只允许 GET 请求');
+        if (!AdminService::isSuper()) $this->error('仅超级管理员可以安装更新');
+        $this->success('令牌已刷新', ['token' => systoken()]);
+    }
+
+    /**
      * 创建后台安装任务。
      * @auth true
      */

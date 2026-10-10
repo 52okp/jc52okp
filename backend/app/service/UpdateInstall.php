@@ -304,9 +304,10 @@ final class UpdateInstall
             throw new RuntimeException('程序入口或依赖文件缺失');
         }
         $process = proc_open([$this->phpCli(), $this->root . '/scripts/update-health.php'], [
-            0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w'],
+            0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w'],
         ], $pipes, $this->root);
         if (!is_resource($process)) throw new RuntimeException('无法启动健康检查');
+        fclose($pipes[0]);
         $exitCode = -1;
         for ($i = 0; $i < 300; $i++) {
             $status = proc_get_status($process);
@@ -314,6 +315,8 @@ final class UpdateInstall
             usleep(100000);
         }
         if ($exitCode === -1) proc_terminate($process);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
         proc_close($process);
         if ($exitCode !== 0) throw new RuntimeException('安装后健康检查未通过，已开始恢复文件');
     }
@@ -356,15 +359,20 @@ final class UpdateInstall
         $script = $this->root . '/scripts/update-worker.php';
         if (!is_file($script)) throw new RuntimeException('后台更新执行器缺失');
         $shell = escapeshellarg($php) . ' ' . escapeshellarg($script) . ' ' . escapeshellarg($id)
-            . ' >' . escapeshellarg($this->jobDir($id) . '/worker.log') . ' 2>&1 &';
+            . ' </dev/null >' . escapeshellarg($this->jobDir($id) . '/worker.log') . ' 2>&1 &';
         $process = proc_open(['/bin/sh', '-c', $shell], [
-            0 => ['file', '/dev/null', 'r'], 1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w'],
+            0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w'],
         ], $pipes, $this->root);
-        if (!is_resource($process) || proc_close($process) !== 0) throw new RuntimeException('后台更新执行器启动失败');
+        if (!is_resource($process)) throw new RuntimeException('后台更新执行器启动失败');
+        foreach ($pipes as $pipe) fclose($pipe);
+        if (proc_close($process) !== 0) throw new RuntimeException('后台更新执行器启动失败');
     }
 
     private function phpCli(): string
     {
+        if (!function_exists('proc_open')) {
+            throw new RuntimeException('PHP-FPM 禁用了 proc_open，无法启动后台更新任务');
+        }
         $configured = (string)(getenv('UPDATE_PHP_CLI') ?: env('UPDATE_PHP_CLI', ''));
         $candidates = array_filter([
             $configured, PHP_SAPI === 'cli' ? PHP_BINARY : null,
@@ -374,17 +382,27 @@ final class UpdateInstall
         foreach ($candidates as $candidate) {
             if (preg_match('/[\x00-\x1f]/', $candidate) || !preg_match('~^(?:/|[A-Za-z]:[\\\\/])~', $candidate)) continue;
             if (PHP_SAPI === 'cli' && $candidate === PHP_BINARY) return $candidate;
-            if (!function_exists('proc_open')) break;
-            // proc_open can execute the CLI even when FPM open_basedir prevents
-            // is_file() from inspecting its path outside the site directory.
-            $process = @proc_open([$candidate, '-v'], [
-                0 => ['file', PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null', 'r'],
-                1 => ['file', PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null', 'w'],
-                2 => ['file', PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null', 'w'],
-            ], $pipes);
-            if (is_resource($process) && proc_close($process) === 0) return $candidate;
+            if ($this->probeCli($candidate)) return $candidate;
         }
-        throw new RuntimeException('未找到 PHP CLI，请在 .env 中设置 UPDATE_PHP_CLI');
+        throw new RuntimeException($configured !== ''
+            ? '配置的 PHP CLI 无法由网站 PHP 进程启动，请检查路径、执行权限和 PHP-FPM 日志'
+            : '未找到 PHP CLI，请在 .env 中设置 UPDATE_PHP_CLI');
+    }
+
+    private function probeCli(string $candidate): bool
+    {
+        // Pipes avoid opening /dev/null from PHP-FPM, which can be outside
+        // a site's open_basedir even when the CLI itself is executable.
+        $process = @proc_open([$candidate, '-v'], [
+            0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w'],
+        ], $pipes);
+        if (!is_resource($process)) return false;
+        fclose($pipes[0]);
+        stream_get_contents($pipes[1]);
+        stream_get_contents($pipes[2]);
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        return proc_close($process) === 0;
     }
 
     private function lock(bool $wait = false)

@@ -9,7 +9,7 @@
     .tutorial-update-progress-bar[data-determinate="true"] { animation: none; transform: none; transition: width .2s ease; }
     @keyframes tutorial-update-moving { from { transform: translateX(0); } to { transform: translateX(195%); } }
 </style>
-<div class="layui-card" id="TutorialUpdatePanel" data-check-url="{:url('check')}" data-status-url="{:url('status')}" data-install-url="{:url('install')}" data-install-token="{:systoken()}">
+<div class="layui-card" id="TutorialUpdatePanel" data-check-url="{:url('check')}" data-status-url="{:url('status')}" data-install-url="{:url('install')}" data-token-url="{:url('token')}">
     <div class="layui-card-header">教程后端更新检查</div>
     <div class="layui-card-body">
         <p>当前版本：<span data-current-version>{$currentVersion}</span></p>
@@ -136,22 +136,37 @@
             installing = true;
             installButton.prop('disabled', true);
             installProgress.prop('hidden', false);
-            installMessage.text('正在启动后台安装任务…');
-            $.ajax(panel.attr('data-install-url'), {method: 'POST', dataType: 'json',
-                data: {release_id: releaseId, _token_: panel.attr('data-install-token')}})
+            installMessage.text('正在获取本次安装令牌…');
+            $.ajax(panel.attr('data-token-url'), {method: 'GET', dataType: 'json', cache: false})
                 .done(function (response) {
-                    if (response && response.code === 1) {
-                        pollStatus();
-                    } else {
+                    if (!response || response.code !== 1 || !response.data || !response.data.token) {
                         installing = false;
                         installButton.prop('disabled', false);
-                        installMessage.text((response && response.info) || '安装任务启动失败。');
+                        installMessage.text((response && response.info) || '获取安装令牌失败，请重新登录后台。');
+                        return;
                     }
+                    installMessage.text('正在启动后台安装任务…');
+                    $.ajax(panel.attr('data-install-url'), {method: 'POST', dataType: 'json',
+                        data: {release_id: releaseId, _token_: response.data.token}})
+                        .done(function (result) {
+                            if (result && result.code === 1) {
+                                pollStatus();
+                            } else {
+                                installing = false;
+                                installButton.prop('disabled', false);
+                                installMessage.text((result && result.info) || '安装任务启动失败。');
+                            }
+                        })
+                        .fail(function () {
+                            installing = false;
+                            installButton.prop('disabled', false);
+                            installMessage.text('安装请求失败，请刷新页面核对任务状态。');
+                        });
                 })
                 .fail(function () {
                     installing = false;
                     installButton.prop('disabled', false);
-                    installMessage.text('安装请求失败，请刷新页面核对任务状态。');
+                    installMessage.text('获取安装令牌失败，请重新登录后台。');
                 });
         });
         button.on('click', checkUpdate);
