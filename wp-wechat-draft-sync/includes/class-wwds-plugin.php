@@ -439,6 +439,26 @@ final class WWDS_Plugin
         return $dom->saveHTML($root);
     }
 
+    /** Apply the same Moyu Green layout to tutorial HTML without uploading images to WeChat. */
+    public function render_tutorial_content($html)
+    {
+        if (!class_exists('DOMDocument')) {
+            return (string)$html;
+        }
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $previous = libxml_use_internal_errors(true);
+        $loaded = $dom->loadHTML('<?xml encoding="utf-8" ?><section id="wwds-root">' . (string)$html . '</section>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+        if (!$loaded || !($root = $dom->getElementById('wwds-root'))) {
+            return (string)$html;
+        }
+        $this->apply_moyu_green_theme($dom, $root);
+        $root->removeAttribute('id');
+        $root->setAttribute('data-wwds-theme', 'moyu-green');
+        return $dom->saveHTML($root);
+    }
+
     /**
      * Deterministic WordPress-to-WeChat renderer based on the modified
      * 52okp/gzh-design-skill Moyu Green component library. Interactive TOC,

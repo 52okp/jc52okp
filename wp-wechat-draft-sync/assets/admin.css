@@ -82,6 +82,7 @@ body.toplevel_page_wwds #wpcontent,body[class*="_page_wwds-tutorial"] #wpcontent
 .wwds-tutorial-table td:first-child a { font-weight:600; text-decoration:none; }
 .wwds-tutorial-table small { display:block; margin-top:4px; color:#94a3b8; }
 .wwds-tutorial-table .wwds-tutorial-error { max-width:320px; color:#b42318; overflow-wrap:anywhere; }
+.wwds-tutorial-table td:last-child form { display:inline-block; margin:0 6px 0 0; }
 .wwds-tutorial-badge { display:inline-block; white-space:nowrap; padding:5px 9px; border-radius:999px; font-size:12px; font-weight:600; }
 .wwds-tutorial-badge.is-success { color:#047857; background:#d1fae5; }
 .wwds-tutorial-badge.is-pending { color:#1d4ed8; background:#dbeafe; }

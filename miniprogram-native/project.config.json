@@ -1,6 +1,32 @@
 {
   "appid": "wx4ec45155a93041cc",
   "compileType": "miniprogram",
-  "setting": {"es6": true, "minified": true, "minifyWXML": true},
-  "editorSetting": {}
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "minifyWXML": true,
+    "postcss": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "enhance": false,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "editorSetting": {},
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  }
 }

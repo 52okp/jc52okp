@@ -2,7 +2,7 @@
   <view class="category-header" style="padding-top:{{topInset}}px;"><view class="header-title">分类</view><view class="header-subtitle">按主题查找你感兴趣的教程</view></view>
   <view class="feature-banner" bindtap="openSelected">
     <view class="banner-copy"><view class="banner-title">{{categoryName || '探索 AI 教程'}}</view><view class="banner-subtitle">从入门到进阶的完整教程合集</view><view class="banner-button">立即学习 →</view></view>
-    <image src="/static/illustrations/category-banner.png" class="banner-art" mode="aspectFit"/>
+    <image src="/static/illustrations/category-banner.webp" class="banner-art" mode="aspectFit" webp="{{true}}"/>
   </view>
   <view class="category-body">
     <scroll-view scroll-y class="side">

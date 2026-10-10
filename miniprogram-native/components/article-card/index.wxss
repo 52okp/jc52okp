@@ -1,6 +1,9 @@
 .article-card { display:flex; align-items:center; gap:20rpx; padding:16rpx; margin-bottom:16rpx; border-radius:24rpx; background:#fff; box-shadow:0 10rpx 32rpx rgba(46,86,154,.055); box-sizing:border-box; }
 .cover-box { width:224rpx; height:188rpx; flex-shrink:0; border-radius:18rpx; overflow:hidden; background:linear-gradient(145deg,#edf4ff,#e3eaff); display:flex; align-items:center; justify-content:center; }
 .article-cover { width:100%; height:100%; }
+.adaptive-cover .cover-box { height:auto; background:transparent; }
+.adaptive-cover .article-cover { display:block; height:auto; }
+.adaptive-cover .no-cover { height:188rpx; background:linear-gradient(145deg,#edf4ff,#e3eaff); }
 .fallback { color:#648cf4; font-weight:900; font-size:52rpx; letter-spacing:3rpx; display:flex; align-items:center; justify-content:center; }
 .article-body { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; }
 .article-tag { align-self:flex-start; color:#376cff; background:#eaf1ff; border:1rpx solid #d7e4ff; border-radius:8rpx; padding:2rpx 12rpx; font-size:20rpx; line-height:1.4; margin-bottom:8rpx; max-width:90%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }

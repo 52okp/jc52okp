@@ -1,6 +1,6 @@
-<view class="article-card {{compact ? 'compact' : ''}}" bindtap="open">
-  <view class="cover-box">
-    <image wx:if="{{article.cover}}" class="article-cover" src="{{article.cover}}" mode="aspectFit" lazy-load/>
+<view class="article-card {{compact ? 'compact' : ''}} {{adaptive ? 'adaptive-cover' : ''}}" bindtap="open">
+  <view class="cover-box {{article.cover ? '' : 'no-cover'}}">
+    <image wx:if="{{article.cover}}" class="article-cover" src="{{article.cover}}" mode="{{adaptive ? 'widthFix' : 'aspectFit'}}" lazy-load/>
     <view wx:else class="article-cover fallback">AI</view>
   </view>
   <view class="article-body">

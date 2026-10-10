@@ -2,7 +2,6 @@
 .env
 .env.*
 !.env.example
-!.env.production
 .install-edgeone-key
 install.lock
 *.local
@@ -15,9 +14,6 @@ backend/safefile/
 backend/database/sqlite.db
 backend/public/upload/
 backend/public/uploads/
-frontend/node_modules/
-frontend/dist/
-frontend/.account-login-backup-*/
 *.sql.zip
 *.sqlite
 *.sqlite3

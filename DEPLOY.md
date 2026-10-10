@@ -1,86 +1,43 @@
-# jc.52okp.com 首次部署操作单
+# 部署与更新
 
-更新日期：2026-10-09。目标是 Debian 12、宝塔、MySQL 5.7、PHP 8.5 和新站点 `jc.52okp.com`。站点尚未创建，下面的 `<SITE_ROOT>` 须在建站后替换为实际路径。首次发布使用 `install.php` 网页向导；52okp 更新中心尚无本项目身份，后台目前只能检查更新，不能在线安装。
+更新日期：2026-10-11。本文针对当前教程后端、原生微信小程序和 WordPress 同步插件。历史一次性补丁及旧版本安装记录不再作为操作步骤。
 
-## 1. 备份和准备新库
+## 教程后端
 
-当前线上 MySQL 5.7 是旧数据来源，用户确认 2026-10-09 13:38 导出后没有新增数据。新站必须用**新建的空 MySQL 5.7 数据库**。通过宝塔将旧 SQL 导入这个新库，然后进入 `install.php`。不要把旧 SQL 导入正在运行的旧库，因为原转储含 `DROP TABLE`。旧库与旧站先保留以便回退。
+现有站点为 `jc.52okp.com`，服务器由用户确认使用 Debian 12、宝塔、PHP 8.4 与 MySQL 5.7。站点运行目录指向后端项目的 `public/`，Nginx 伪静态使用 [backend/宝塔伪静态.conf](backend/宝塔伪静态.conf)。EdgeOne 在访客侧提供 HTTPS；若采用 HTTP 回源，宝塔源站无须为这个配置另装证书。
 
-先在宝塔备份旧库，并在宝塔新建空库和专用账号。把本机 `D:\downloads\ai_6008686_xyz_2026-10-09_13-38-47_mysql_data_1DeC7.sql.zip` 解压，得到 `.sql` 文件，然后通过宝塔的数据库导入功能将其导入**新库**。若切换前旧库又发生写入，以那时重新导出的最新 SQL 替代旧文件；此安装器要求导入库保留原项目 17 张表及 8 条旧迁移记录。SQL 备份文件不要放进网站目录。
+生产数据库、微信小程序 AppSecret、WordPress 同步密钥和更新令牌存于服务器 `.env`，不纳入源码或发布 ZIP。配置项见 [backend/.env.example](backend/.env.example)。宝塔 PHP 8.4 CLI 的已核实路径是 `/www/server/php/84/bin/php`；后台安装更新若不能自动找到 CLI，可在服务器 `.env` 设置 `UPDATE_PHP_CLI` 为该路径。
 
-在新库核对基线：文章 8（原可见 7）、分类 5、头图 4、会员 467、收藏 20、历史 330。文章 ID 应保持 1–8，ID 2 原本隐藏；若与最新备份不一致，先排查再迁移。详细验收见 [旧库迁移验收.md](旧库迁移验收.md)。不要将 SQL、数据库密码或本机 `backend/.env` 放到网站公开目录。
+新建独立站点时，可用 `backend/scripts/build-first-deploy.php` 生成首发包，上传到新站根目录并访问 `/install.php`。如果使用旧 SQL 迁移数据，先在宝塔把备份导入**新建的 MySQL 5.7 库**，再由网页安装器完成迁移。已经安装的站点不重新执行 `install.php`；安装完成后移除服务器上的安装入口与临时安装凭据。当前仓库不保存旧 SQL 备份或历史首发 ZIP。
 
-## 2. 建站和检查 PHP
+## 教程后端在线更新
 
-`jc.52okp.com` 通过 EdgeOne 加速：访客侧在 EdgeOne 启用 HTTPS 和强制 HTTPS，EdgeOne 可以通过 HTTP 回源，宝塔源站无需本地证书。宝塔新建该站点，选择 PHP 8.5。新站代码目录记为 `<SITE_ROOT>`。网站运行目录设为 `<SITE_ROOT>/public`。Nginx 伪静态使用 [backend/宝塔伪静态.conf](backend/宝塔伪静态.conf)。若使用 Apache，项目自带 `public/.htaccess`。
+后端项目标识为 `jc52okp`。每次发布需要 GitHub [52okp/jc52okp](https://github.com/52okp/jc52okp) 的正式 `vX.Y.Z` Release 同时包含 `jc52okp-update.zip` 与 `update-manifest.json`。随后在 52okp 统一更新中心导入、校验并发布，站点后台才会检查到新版。清单的 `from` 必须等于站点当前 `APP_VERSION`；不要覆盖已发布版本的资产。
 
-`install.php` 会检查 PHP 版本、扩展、`vendor/` 和写入权限。`composer.lock` 的 PHP 基线是 8.2，本地只在 8.2 跑过；服务器的 PHP 8.5 必须通过新站及新库的迁移和接口回归。至少在宝塔 PHP 设置中开启 `pdo_mysql`、`mbstring`、`curl`、`dom`、`fileinfo`、`gd`、`zip`、`openssl`。
+构建增量更新时，先把**紧邻上一版** Release 的两个资产下载到仓库外的临时目录。以从 1.0.7 升到 1.0.8 为例：
 
-站点的 PHP 进程需要读取 `app/`、`config/`、`vendor/`，写入 `runtime/` 和实际上传目录。`open_basedir` 若开启，允许范围须覆盖整个 `<SITE_ROOT>`，无需关闭整台服务器的限制。
-
-## 3. 上传代码并打开安装向导
-
-本地首发包由 `backend/scripts/build-first-deploy.php` 生成，包含后端代码、`vendor/`、迁移、公共资源及 `public/install.php`，不含 `.env`、数据库、运行数据和上传数据。将包解压到 `<SITE_ROOT>`，确认 `<SITE_ROOT>/public/index.php`、`<SITE_ROOT>/public/install.php` 和 `<SITE_ROOT>/vendor/autoload.php` 存在。不要把整个 `backend/` 原样上传。
-
-首次安装时使用的历史后端包是 `deploy-artifacts/backend-web-install-20261009-v4-edgeone.zip`，SHA-256 为 `3512aa280b272527d1731ea5d25970fd38b10e2871efbf92d7ce74c2e698adeb`。已安装站点的 WordPress 兼容更新见文末增量补丁，不要重新运行安装器。
-
-第一次打开 `https://jc.52okp.com/install.php` 时，如果 EdgeOne 使用 HTTP 回源，安装器会在站点根目录生成 `.install-edgeone-key`，并提示配置回源请求头。在宝塔文件管理器读取该文件的值，**不要发在聊天里**；到 EdgeOne 规则引擎将匹配类型设为 `HOST = jc.52okp.com`，在“操作”中选择“修改 HTTP 回源请求头”，类型选“设置”、头部名称选“自定义”并填写 `X-52OKP-Install-Key`，头部值填该文件内容。EdgeOne 默认携带 `X-Forwarded-Proto`，安装器会同时核对访客协议、EdgeOne 标记及临时密钥。保存并发布规则后刷新安装页即可继续。
-
-随后按页面操作：环境检测 → 填**已导入 SQL 的新库**地址、端口、库名、用户名、密码（可同时填小程序 AppSecret）→ 核对页面显示的文章、会员等数量 → 勾选确认 → 点击“确认并迁移”。安装器会自动创建服务器 `.env`、运行 3 项新增迁移并校验旧数据。小程序 AppID 已固定为 `wx4ec45155a93041cc`。AppSecret 不要发在聊天里或写入发布包。
-
-成功后使用旧库原有管理员账号登录，并立即在宝塔删除 `<SITE_ROOT>/public/install.php` 和 `<SITE_ROOT>/.install-edgeone-key`，同时删除 EdgeOne 的临时回源请求头；保留根目录的 `install.lock`。安装器不会生成“admin/admin”账号，也不会插入示例文章。若安装中断，锁会阻止重复执行；按页面提示检查日志、从备份恢复**新库**后再重试。
-
-新站使用新数据库，旧站继续写旧库。若公开发布时要完整继承后续用户行为，正式切换前需短暂停写旧站、再次导出最新数据并重建新库，随后重跑迁移。若旧站长期并行，两站的会员、收藏和历史会分叉；数据库不会自动同步。
-
-## 4. 验收安装结果
-
-网页安装器会创建 WordPress 来源表、后台更新菜单，将文章正文改为 `MEDIUMTEXT`，并给两篇旧文章的资源链接补 `https://`。MySQL DDL 不能按整批事务回滚；迁移前备份是恢复依据。
-
-## 5. 验收新站和 WordPress
-
-- `https://jc.52okp.com/api/article/list` 返回成功 JSON、7 篇可见旧文章；`/api/article/detail?id=5` 可读。
-- `https://jc.52okp.com/admin/login.html` 使用原数据库已有管理员账号登录；不存在“admin/admin”默认账号步骤。
-- 检查分类、封面、正文、会员登录、收藏、历史和 HTTPS 图片；查看 PHP-FPM 与应用日志，排除 PHP 8.5 兼容错误。
-
-新站通过后将 `WP_SYNC_MAINTENANCE=0`。在 WordPress 安装或升级 `wp-wechat-draft-sync/` 插件前，备份原插件目录和 WordPress 数据库。在“52okp微信发布工具箱 → 教程同步”填写 `https://jc.52okp.com`、相同的站点标识与独立密钥、需要同步的分类，然后启用。先用一篇新文章验证创建、修改和撤回；原公众号草稿功能也需回归。已有 8 篇教程文章直接保留为本地基础文章，无需二次编辑。若 WordPress 中也有同一篇，先建立一对一来源映射再点“历史文章分批入队”，否则会产生重复文章。
-
-## 6. 发布原生微信小程序
-
-使用微信开发者工具打开 [miniprogram-native](miniprogram-native) 目录，本次不再编译 `frontend/`。代码已将教程 API 改为 `https://jc.52okp.com`；独立扫码登录仍请求 `https://open.52okp.com`。在微信公众平台为该 AppID 配置这两个 HTTPS `request` 合法域名，并将 `https://jc.52okp.com` 配到 `uploadFile` 合法域名。检查实际远程图片资源域名及平台规则。
-
-先上传体验版并在真机测试首页、文章详情、图片、会员登录、头像上传、收藏、历史、分享、扫码确认；通过后提交审核和发布。旧版小程序仍指向 `https://ai.600868.xyz`，新站创建不会自动让旧版客户端改向。旧站先保持服务；日后要停旧站，先安排旧域名兼容转发和数据切换。
-
-## 回退与更新边界
-
-若新站验收失败，暂停新站与 WordPress 教程同步，旧站和旧库保持原样；修复新站或从迁移前备份重建新库。不要用旧 SQL 覆盖仍在运行的旧库。52okp 更新中心目前未为本项目注册独立项目，后台没有安装、备份、切换和恢复任务，首次部署及当前后续升级都需要人工处理。
-
-## WordPress 编辑器与封面兼容补丁（2026-10-09）
-
-已安装站点不要再次运行 `install.php`。本次增量文件是 `deploy-artifacts/backend-wordpress-compat-20261009.zip`（SHA-256：`733b8ae3c115d434c8030f1819e19b8771965a8c8d521172cb1f0fae503493f2`），ZIP 内路径相对于后端站点根目录。先备份站点代码，再在宝塔中覆盖对应的 7 个文件；不会覆盖 `.env`、数据库、上传或运行目录。随后安装 `deploy-artifacts/wp-wechat-draft-sync-1.5.0.zip`（SHA-256：`d75a2100e562c84ab1c18dc79ea2ef817015e60934907f90878853576b286145`），配置保留。最后在 WordPress“教程同步”点击“刷新 WordPress 正文（下一批）”，每次最多 50 篇；如果之前执行过该功能，先点“重新开始正文刷新”。逐篇核对教程文章 ID 和错误列。
-
-后台新上传的本地封面也保留原图比例，不再强制裁成正方形。原生小程序源码 `miniprogram-native/` 的文章封面已改成完整比例展示；需要通过微信开发者工具重新上传小程序版本。真机访问外链图片前，核对微信公众平台允许的图片来源域名，至少检查实际使用的 `52okp.com` 和 `52okp.600867.xyz`。后端不会下载或重新托管 WordPress 图片。
-
-## 后台页内更新与安装启动包（2026-10-10）
-
-### 从 1.0.7 开始制作后端增量更新包
-
-已安装的后端更新器支持只替换 ZIP 中出现的文件。构建下一版时，把**紧邻的上一版**正式 Release 的 ZIP 和清单放在本地，传给构建器；它会校验上一版的产品、版本、大小和 SHA-256，然后只打包新增或内容变化的文件：
-
-```shell
-mkdir deploy-artifacts/release-v1.0.8
-php backend/scripts/build-update.php --project=jc52okp --version=1.0.8 --from=1.0.7 --notes-file=deploy-artifacts/release-v1.0.8-notes.txt --output=deploy-artifacts/release-v1.0.8 --base-package=deploy-artifacts/release-v1.0.7/jc52okp-update.zip --base-manifest=deploy-artifacts/release-v1.0.7/update-manifest.json
+```powershell
+gh release download v1.0.7 -R 52okp/jc52okp -p jc52okp-update.zip -p update-manifest.json -D D:/jc-release/base
+php backend/scripts/build-update.php --project=jc52okp --version=1.0.8 --from=1.0.7 --notes-file=D:/jc-release/notes.txt --output=D:/jc-release/output --base-package=D:/jc-release/base/jc52okp-update.zip --base-manifest=D:/jc-release/base/update-manifest.json
 ```
 
-之后制作 1.0.9 时，以 **1.0.8 的 ZIP 和清单**为基线。增量包的 `update-version.json` 保留完整文件哈希清单，因此基线即使也是增量包，仍能继续比较。首次安装包仍使用原有首发构建器；不传 `--base-package` 和 `--base-manifest` 时可生成完整更新包。
+先创建 `base/` 和 `output/`，并准备非空的 `notes.txt`。构建器会校验基线包和清单，只加入新增或哈希变化的文件；包内保留完整文件哈希清单，所以下一版可以继续以前一份增量包为基线。删除旧代码文件会被拒绝，须另行设计带备份与恢复的清理步骤。新增或修改数据库迁移也不通过普通在线更新包自动执行。首次安装包与后续增量包不要混用。
 
-如果源代码删除了旧版文件，构建器会停止并指出文件名；当前在线安装器不能安全地自动删除旧文件，需要为该版本另行设计带备份与恢复的清理流程。数据库迁移同样不通过此文件更新包自动执行。WordPress 插件和微信小程序分别发布，不进入教程后端更新包。
+站点点击“安装此版本”后，由服务器后台任务下载、校验、备份、替换并做健康检查。服务器 `.env`、数据库、上传目录和运行数据不参与替换。若任务中断，查看 `runtime/update-jobs/<任务 ID>/status.json` 与 `worker.log`；确认执行器已停后，再按实际任务状态使用 `scripts/update-worker.php recover <任务 ID>`，不要在任务运行时手动恢复。
 
-此前上线的 `1.0.0` 只有只读检查页，无法从自身安装新版更新器。首次启用需在宝塔备份站点代码后，手工把 `deploy-artifacts/backend-update-bootstrap-20261010.zip` 解压到后端**站点根目录**（`app/`、`public/`、`scripts/` 的上一级），覆盖其中 6 个文件。压缩包 SHA-256：`29867d2fe2567cd69875c49b9ef5bd7bf828f8d1cabb99b98f64951a63ab0b07`。它不包含 `.env`、数据库和上传目录；不改变 `APP_VERSION=1.0.0`。本启动包只提供更新界面与执行器，不包含之前的 Yutu 图床改动。
+## WordPress 插件
 
-刷新“教程后端更新”后，检查会留在后台当前页，网络请求期间显示流动进度条。更新中心仍返回 404 时，没有可安装的正式发布；须先在更新中心发布与当前项目、起始版本匹配的包。发现发布后，超级管理员点“安装此版本”会启动后台任务。下载与健康检查显示无百分比的活动进度；预检、备份和替换文件显示各阶段真实的完成数。程序会备份被替换文件，安装失败则恢复；新增或修改数据库迁移的包会在替换前拒绝，须另行备份数据库并人工发布。
+插件源码在 `wp-wechat-draft-sync/`。将该目录按 WordPress 插件目录结构打包后，在 WordPress 后台安装或替换；不要把插件 ZIP 混入教程后端更新包。插件的公众号草稿配置与“教程同步”配置相互独立。教程同步填写后端 HTTPS 地址、稳定站点标识、独立签名密钥和要同步的分类；密钥与后端服务器配置保持一致，不要写进 Git。
 
-服务器需要可运行的 PHP CLI、`proc_open`、ZIP、cURL、可写的 `runtime/update-jobs/` 和目标代码目录。自动找不到 PHP CLI 时，在服务器 `.env` 设置 `UPDATE_PHP_CLI` 为宝塔 PHP 8.5 CLI 的绝对路径。若任务长时间没有状态更新，在服务器检查 `runtime/update-jobs/<任务 ID>/worker.log`。如果执行器已停止且代码只更新了一部分，从后端站点根目录运行 `php scripts/update-worker.php recover <任务 ID>` 恢复；确认恢复结果后再重试。不要在执行器仍运行时手动恢复。正式生产包安装尚需在隔离副本站点做一次完整演练，不能把本地文件替换测试当作生产更新验收。
+文章发布或正文刷新后先进入队列；逐篇状态出现教程文章 ID 才表示后端确认。若任务计划时间已过仍显示“等待发送”，检查 WordPress 的 WP-Cron、站点回环请求和服务器定时任务。当前插件源码 1.5.3 提供逐篇“立即发送 / 立即重试”按钮，可绕过延误的定时任务直接处理该条；它不能替代长期正常运行的自动调度。失败原因会显示在对应行。
 
-### 1.0.2 页面热修复
+## 原生微信小程序
 
-2026-10-10 首个启动包及 v1.0.1 更新包的更新页模板存在 JavaScript 编译错误。已覆盖首个启动包、但线上仍是 `APP_VERSION=1.0.0` 的站点，先把 `deploy-artifacts/backend-update-page-fix-20261010.zip` 解压到后端站点根目录，覆盖 `app/admin/view/update/index.html` 一个文件，并清理站点 `runtime/temp/` 中的模板编译缓存或在宝塔重启对应 PHP。随后在更新中心发布 GitHub `v1.0.2`，其清单起始版本为 `1.0.0`，无需先安装 v1.0.1。后台重新检查到 1.0.2 后再执行在线安装；不要安装会重新写入错误模板的 v1.0.1。
+用微信开发者工具打开 `miniprogram-native/`，后端 API 基址为 `https://jc.52okp.com`。确认微信公众平台的 request、uploadFile 和实际图片来源域名允许列表，先上传体验版并用真机核对首页、分类、文章 HTML 正文、会员资料、收藏、历史、分享及扫码确认；通过后再提交审核和发布。修改本地文件不会自动更新已发布的小程序。
+
+## 发布核对
+
+- 后端：配置和数据库保留，更新包的产品、起始版本、大小和 SHA-256 与正式 Release 一致。
+- WordPress：核对插件版本、选中分类、单篇发送结果和教程文章 ID；公众号草稿功能单独回归。
+- 小程序：核对图片来源、HTML 正文、会员登录和真实设备的页面布局。
+- 本地：可运行 `backend/tests/`、`miniprogram-native/tests/` 和 `wp-wechat-draft-sync/tests/` 中与本次改动相关的脚本。

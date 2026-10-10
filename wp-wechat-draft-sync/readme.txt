@@ -3,7 +3,7 @@ Contributors: 52okp
 Tags: wechat, official account, draft, sync
 Requires at least: 5.8
 Requires PHP: 7.4
-Stable tag: 1.5.0
+Stable tag: 1.5.3
 License: AGPLv3 or later
 
 Automatically creates or updates a WeChat Official Account draft whenever a WordPress post is published or updated.
@@ -28,6 +28,18 @@ Supports multiple Official Accounts with independent WordPress category routing.
 * The built-in Moyu Green renderer is adapted from 52okp/gzh-design-skill and its upstream project by Jiamu and Moyu Xiaoli under AGPL-3.0. See THIRD-PARTY-NOTICES.txt.
 
 == Changelog ==
+
+= 1.5.3 =
+* Add a per-article button to send or retry one queued tutorial task immediately, even when WP-Cron is overdue.
+* Keep nonce and administrator checks and reject tasks superseded by a newer article revision.
+
+= 1.5.2 =
+* Bring newly queued tutorial articles ahead of a later retry event instead of leaving them waiting.
+* Show failed or overdue WordPress scheduling and the next planned send time in the tutorial console.
+
+= 1.5.1 =
+* Apply the existing Moyu Green HTML layout before sending tutorial articles to the mini program backend.
+* Keep WordPress image URLs in tutorial HTML; WeChat media upload remains limited to Official Account drafts.
 
 = 1.5.0 =
 * Send WordPress-rendered editor content, including Gutenberg blocks and shortcodes, to the tutorial backend.

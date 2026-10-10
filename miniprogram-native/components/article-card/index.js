@@ -10,7 +10,8 @@ Component({
         tagLabel
       });
     } },
-    compact: { type: Boolean, value: false }
+    compact: { type: Boolean, value: false },
+    adaptive: { type: Boolean, value: false }
   },
   data: { dateLabel: '', viewsLabel: '0', tagLabel: '' },
   methods: { open() { this.triggerEvent('open', { id: this.data.article.id }); } }

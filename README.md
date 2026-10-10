@@ -1,25 +1,22 @@
-# 52okp 教程项目
+# 52okp AI 教程
 
-本仓库包含教程后端、微信小程序及 WordPress 教程同步插件的源码。
+本仓库保留当前使用的三部分源码：
 
-| 目录 | 内容 |
+| 目录 | 用途 |
 | --- | --- |
-| `backend/` | ThinkPHP / ThinkAdmin 后端、网页安装器、迁移和更新包构建脚本 |
-| `miniprogram-native/` | 当前原生微信小程序，教程 API 使用 `jc.52okp.com` |
-| `wp-wechat-draft-sync/` | WordPress 微信发布与教程同步插件 |
-| `frontend/` | 早期 uni-app 前端，保留源码供参考 |
-| `legacy-miniprogram/` | 更早的小程序示例，保留源码供参考 |
+| `backend/` | ThinkPHP / ThinkAdmin 教程 API、管理后台、网页安装器、MySQL 迁移和在线更新客户端 |
+| `miniprogram-native/` | 原生微信小程序，使用 `https://jc.52okp.com` 教程 API |
+| `wp-wechat-draft-sync/` | WordPress 微信发布工具箱及教程文章同步插件 |
 
-## 首次部署
+部署与更新步骤见 [DEPLOY.md](DEPLOY.md)，当前功能、版本边界及待核实事项见 [项目总结.md](项目总结.md)。早期 uni-app、示例小程序、旧补丁包和预览产物已从当前工作目录清理。
 
-按 [DEPLOY.md](DEPLOY.md) 在 Debian 12、PHP 8.5、MySQL 5.7、宝塔环境安装。数据库先导入旧 SQL 备份，再通过 `backend/public/install.php` 完成迁移。站点运行目录设为 `backend/public`，Nginx 伪静态见 `backend/宝塔伪静态.conf`。生产 `.env` 由安装器创建，本仓库只提供不含真实密码的模板。
+## 开发入口
 
-首次发布包可在 `backend/` 目录运行 `php scripts/build-first-deploy.php` 生成；后续更新包构建入口为 `php scripts/build-update.php`。构建产物和本地数据库不纳入源码仓库。
+- 后端网站运行目录为 `backend/public/`，数据库使用 MySQL 5.7。依赖锁定在 `backend/composer.lock`，部署用依赖保存在 `backend/vendor/`。
+- 使用微信开发者工具打开 `miniprogram-native/`。小程序配置和页面入口分别在 `project.config.json` 与 `app.json`。
+- WordPress 插件入口为 `wp-wechat-draft-sync/wp-wechat-draft-sync.php`。公众号草稿和教程后端同步分别配置。
+- `.env`、数据库、上传内容、运行缓存和 ZIP 发布包不纳入源码版本管理。
 
-## 更新中心状态
+## 版本发布
 
-后台更新页在当前页面检查版本；正式发布可用时，超级管理员可以启动后台代码安装任务，查看预检、备份、安装和健康检查状态。失败时恢复已替换文件；包含新增或修改数据库迁移的发布包会被拒绝，须另行备份数据库并人工迁移。旧站首次启用此功能须手工覆盖更新入口与执行器文件，见 [DEPLOY.md](DEPLOY.md)。服务器 `.env` 中的 `OSS_PROJECT`、`OSS_TOKEN` 和 `APP_VERSION` 不得提交到仓库。
-
-## 开发检查
-
-后端依赖由 `backend/composer.lock` 锁定，首次部署包使用仓库中的 `backend/vendor/`。项目测试脚本位于 `backend/tests/`、`miniprogram-native/tests/` 与 `frontend/tests/`。
+教程后端的正式更新由 [52okp/jc52okp](https://github.com/52okp/jc52okp) 的 `vX.Y.Z` Release 提供 `jc52okp-update.zip` 与 `update-manifest.json`，再由 52okp 统一更新中心校验并发布。打包脚本 `backend/scripts/build-update.php` 可使用紧邻上一版 Release 的两个资产生成增量包，只收录新增或内容变化的文件。WordPress 插件和微信小程序分别发布。

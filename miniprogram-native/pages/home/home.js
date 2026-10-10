@@ -1,10 +1,10 @@
 const { BASE_URL, getHome, getArticleList, shareImageUrl } = require('../../common/api');
 const { topInset, backendImageUrl, quickCategories } = require('../../common/ui');
 Page({
-  data: { banners: [], categories: [], quickCategories: [], recommend: [], heroImage: '', heroReady: false, heroArticleId: 0, keyword: '', loading: true, topInset: topInset(), sectionTitle: '推荐教程' },
+  data: { banners: [], categories: [], quickCategories: [], recommend: [], heroImage: '', heroArticleId: 0, keyword: '', loading: true, topInset: topInset(), sectionTitle: '推荐教程' },
   onShow() { this.load(); },
   onPullDownRefresh() {
-    this.setData({ heroImage: '', heroReady: false, heroArticleId: 0 });
+    this.setData({ heroImage: '', heroArticleId: 0 });
     this.load().finally(() => wx.stopPullDownRefresh());
   },
   async load() {
@@ -18,7 +18,7 @@ Page({
       const heroBanner = banners.find(item => backendImageUrl(item.image, BASE_URL));
       const categories = data.categories || [];
       this.setData({ banners, categories, quickCategories: quickCategories(categories, BASE_URL),
-        heroImage: heroBanner ? backendImageUrl(heroBanner.image, BASE_URL) : '', heroReady: true,
+        heroImage: heroBanner ? backendImageUrl(heroBanner.image, BASE_URL) : '',
         heroArticleId: heroBanner ? Number(heroBanner.article_id) || 0 : 0 });
       let recommend = data.recommend || [];
       let sectionTitle = '推荐教程';
@@ -31,7 +31,7 @@ Page({
         } catch (_) {}
       }
       if (version === this.loadVersion) this.setData({ recommend, sectionTitle });
-    } catch (_) { if (version === this.loadVersion && !this.data.heroReady) this.setData({ heroReady: true }); }
+    } catch (_) {}
     finally { if (version === this.loadVersion) this.setData({ loading: false }); }
   },
   searchInput(event) { this.setData({ keyword: event.detail.value }); },

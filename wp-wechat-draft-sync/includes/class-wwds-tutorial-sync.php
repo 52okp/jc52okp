@@ -66,6 +66,7 @@ final class WWDS_Tutorial_Sync
         add_action('admin_post_wwds_tutorial_requeue', array($this, 'requeue'));
         add_action('admin_post_wwds_tutorial_import', array($this, 'import_batch'));
         add_action('admin_post_wwds_tutorial_process', array($this, 'process_now'));
+        add_action('admin_post_wwds_tutorial_process_one', array($this, 'process_one'));
         add_action('admin_post_wwds_tutorial_reset_import', array($this, 'reset_import'));
         add_action('admin_post_wwds_tutorial_refresh', array($this, 'refresh_batch'));
         add_action('admin_post_wwds_tutorial_reset_refresh', array($this, 'reset_refresh'));
@@ -246,7 +247,7 @@ final class WWDS_Tutorial_Sync
             foreach ($terms as $term) $category_data[] = array('id' => (int)$term->term_id, 'name' => $term->name);
             usort($category_data, function ($a, $b) { return $a['id'] <=> $b['id']; });
             $tags = wp_get_post_tags($post_id, array('fields' => 'names'));
-            $rendered = $this->rendered_content($post);
+            $rendered = WWDS_Plugin::instance()->render_tutorial_content($this->rendered_content($post));
             $article = array(
                 'title' => html_entity_decode(get_the_title($post_id), ENT_QUOTES, 'UTF-8'),
                 'summary' => $post->post_excerpt ?: wp_trim_words(wp_strip_all_tags($rendered), 50),
@@ -284,34 +285,60 @@ final class WWDS_Tutorial_Sync
             'state' => 'queued', 'attempts' => 0, 'next_at' => time(), 'last_error' => '',
         ));
         if ($inserted) {
+            $queue_id = (int)$wpdb->insert_id;
             $wpdb->query($wpdb->prepare(
                 "UPDATE {$this->table()} SET state='superseded' WHERE post_id=%d AND id<%d AND state='queued'",
-                $post_id, $wpdb->insert_id
+                $post_id, $queue_id
             ));
-            $this->schedule();
+            $schedule_error = $this->schedule();
+            if ($schedule_error !== '') {
+                $wpdb->update($this->table(), array(
+                    'last_error' => '任务已入队，但自动调度失败：' . $schedule_error,
+                ), array('id' => $queue_id));
+            }
         }
         return (bool)$inserted;
     }
 
-    private function schedule()
+    private function schedule($when = null)
     {
-        if (!wp_next_scheduled(self::CRON)) wp_schedule_single_event(time() + 10, self::CRON);
+        $when = max(time() + 10, (int)($when ?: time() + 10));
+        $existing = wp_next_scheduled(self::CRON);
+        if ($existing !== false && (int)$existing <= $when) return '';
+        if ($existing !== false) {
+            $removed = wp_unschedule_event((int)$existing, self::CRON, array(), true);
+            if (is_wp_error($removed)) return $removed->get_error_message();
+            if (!$removed) return '无法提前已有定时任务';
+        }
+        $scheduled = wp_schedule_single_event($when, self::CRON, array(), true);
+        if (!is_wp_error($scheduled) && $scheduled) return '';
+        if ($existing !== false) wp_schedule_single_event((int)$existing, self::CRON);
+        return is_wp_error($scheduled) ? $scheduled->get_error_message() : 'WordPress 未接受定时任务';
     }
 
-    public function process()
+    public function process($only_id = 0)
     {
         global $wpdb;
         $table = $this->table();
         $now = time();
         $excluded = array_map('intval', (array)$this->settings()['excluded_post_ids']);
-        $rows = $wpdb->get_results($wpdb->prepare(
-            "SELECT * FROM $table WHERE state IN ('queued','sending') AND next_at <= %d ORDER BY id ASC LIMIT 10", $now
-        ));
-        foreach ($rows as $row) {
-            $claimed = $wpdb->query($wpdb->prepare(
-                "UPDATE $table SET state='sending', next_at=%d WHERE id=%d AND state=%s AND next_at<=%d",
-                $now + 600, $row->id, $row->state, $now
+        $rows = $only_id
+            ? $wpdb->get_results($wpdb->prepare(
+                "SELECT * FROM $table WHERE id=%d AND state='queued' LIMIT 1", (int)$only_id
+            ))
+            : $wpdb->get_results($wpdb->prepare(
+                "SELECT * FROM $table WHERE state IN ('queued','sending') AND next_at <= %d ORDER BY id ASC LIMIT 10", $now
             ));
+        foreach ($rows as $row) {
+            $claimed = $only_id
+                ? $wpdb->query($wpdb->prepare(
+                    "UPDATE $table SET state='sending', next_at=%d WHERE id=%d AND state='queued'",
+                    $now + 600, $row->id
+                ))
+                : $wpdb->query($wpdb->prepare(
+                    "UPDATE $table SET state='sending', next_at=%d WHERE id=%d AND state=%s AND next_at<=%d",
+                    $now + 600, $row->id, $row->state, $now
+                ));
             if ($claimed !== 1) continue;
             if ($row->action === 'upsert' && in_array((int)$row->post_id, $excluded, true)) {
                 $wpdb->update($table, array('state' => 'excluded', 'result' => 'excluded',
@@ -334,7 +361,7 @@ final class WWDS_Tutorial_Sync
             }
         }
         $next = $wpdb->get_var("SELECT MIN(next_at) FROM $table WHERE state IN ('queued','sending')");
-        if ($next) wp_schedule_single_event(max(time() + 10, (int)$next), self::CRON);
+        if ($next) $this->schedule((int)$next);
     }
 
     private function send($body, $action)
@@ -421,7 +448,10 @@ final class WWDS_Tutorial_Sync
                 : array('已发送，旧记录未核实', 'warning');
         }
         if ($row->state === 'sending') return array('发送中', 'pending');
-        if ($row->state === 'queued') return $row->attempts ? array('重试中', 'warning') : array('等待发送', 'pending');
+        if ($row->state === 'queued') {
+            if (!$row->attempts && $row->last_error) return array('自动调度失败', 'warning');
+            return $row->attempts ? array('重试中', 'warning') : array('等待发送', 'pending');
+        }
         return array('同步失败', 'error');
     }
 
@@ -445,11 +475,34 @@ final class WWDS_Tutorial_Sync
         }
         $scanned = count(array_filter($post_ids, function ($id) use ($cursor) { return $id <= $cursor; }));
         $ready = !empty($settings['enabled']) && $settings['endpoint'] && $settings['site_id'] && strlen($settings['secret']) >= 32 && $settings['categories'];
+        global $wpdb;
+        $next_due = (int)$wpdb->get_var("SELECT MIN(next_at) FROM {$this->table()} WHERE state IN ('queued','sending')");
+        $cron_at = wp_next_scheduled(self::CRON);
+        $schedule_error = '';
+        if ($next_due && $next_due <= time() && ($cron_at === false || $cron_at > time() + 60)) {
+            $schedule_error = $this->schedule();
+            $cron_at = wp_next_scheduled(self::CRON);
+        }
+        $cron_disabled = defined('DISABLE_WP_CRON') && DISABLE_WP_CRON;
         ?>
         <div class="wwds-console wwds-tutorial">
             <header class="wwds-topbar"><div class="wwds-brand"><span class="wwds-logo">教</span><strong>52okp微信发布工具箱</strong><span class="wwds-version">v<?php echo esc_html(WWDS_VERSION); ?></span><span class="wwds-divider"></span><span>教程同步</span></div><a class="wwds-doc-link" href="<?php echo esc_url(admin_url('admin.php?page=wwds')); ?>">返回发布控制台 ↗</a></header>
             <main class="wwds-main">
                 <section class="wwds-heading"><h1>教程同步控制台</h1><p>查看选中分类的文章是否在教程后台创建成功。</p></section>
+                <?php if ($next_due && ($cron_disabled || $schedule_error !== '' || $cron_at === false || $cron_at < time() - 60)) : ?>
+                    <div class="notice notice-warning"><p>
+                        <?php if ($cron_disabled) : ?>
+                            当前站点禁用了内置 WP-Cron；请确认服务器定时执行 wp-cron.php，否则文章会停在“等待发送”。
+                        <?php elseif ($schedule_error !== '') : ?>
+                            教程同步定时任务安排失败：<?php echo esc_html($schedule_error); ?>。
+                        <?php elseif ($cron_at === false) : ?>
+                            有待发送文章，但尚未找到教程同步定时任务。
+                        <?php else : ?>
+                            教程同步定时任务已过计划时间，仍未执行；请检查 WordPress 定时任务和站点回环请求。
+                        <?php endif; ?>
+                        可先点击对应文章的“立即发送”查看实际发送结果。
+                    </p></div>
+                <?php endif; ?>
                 <section class="wwds-overview"><div class="wwds-overview-main">
                     <div class="wwds-section-title"><span class="wwds-title-icon">▣</span><div><h2>同步状态概览</h2><p>“已同步”需要后端确认教程文章 ID；旧版成功记录会标为待核实。</p></div></div>
                     <div class="wwds-stats">
@@ -487,8 +540,8 @@ final class WWDS_Tutorial_Sync
                             <td><?php echo $row ? esc_html(($row->action === 'upsert' ? '发布' : '下架') . ' · v' . $row->revision) : '—'; ?></td>
                             <td><span class="wwds-tutorial-badge is-<?php echo esc_attr($status[1]); ?>"><?php echo esc_html($status[0]); ?></span></td>
                             <td><?php echo $row && $row->remote_article_id ? (int)$row->remote_article_id : '—'; ?></td>
-                            <td><?php echo $row && $row->synced_at ? esc_html(wp_date('Y-m-d H:i:s', (int)$row->synced_at)) : '—'; ?><?php if ($row && $row->last_error) : ?><small class="wwds-tutorial-error"><?php echo esc_html($row->last_error); ?></small><?php endif; ?></td>
-                            <td><?php if ($row && $row->action === 'upsert' && $row->state === 'queued' && $row->attempts) : ?><a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_requeue&post_id=' . $id), 'wwds_tutorial_requeue_' . $id)); ?>">重新生成并重试</a><?php else : ?>—<?php endif; ?></td>
+                            <td><?php echo $row && $row->synced_at ? esc_html(wp_date('Y-m-d H:i:s', (int)$row->synced_at)) : '—'; ?><?php if ($row && $row->state === 'queued' && $row->next_at) : ?><small>计划发送：<?php echo esc_html(wp_date('Y-m-d H:i:s', (int)$row->next_at)); ?></small><?php endif; ?><?php if ($row && $row->last_error) : ?><small class="wwds-tutorial-error"><?php echo esc_html($row->last_error); ?></small><?php endif; ?></td>
+                            <td><?php if ($row && $row->action === 'upsert' && $row->state === 'queued') : ?><form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"><input type="hidden" name="action" value="wwds_tutorial_process_one"><input type="hidden" name="id" value="<?php echo (int)$row->id; ?>"><?php wp_nonce_field('wwds_tutorial_process_one_' . $row->id); ?><button type="submit" class="button button-small"><?php echo $row->attempts ? '立即重试' : '立即发送'; ?></button></form><?php if ($row->attempts) : ?> <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=wwds_tutorial_requeue&post_id=' . $id), 'wwds_tutorial_requeue_' . $id)); ?>">重新生成</a><?php endif; ?><?php else : ?>—<?php endif; ?></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$post_ids) : ?><tr><td colspan="6">当前分类没有符合条件的已发布文章。</td></tr><?php endif; ?>
@@ -585,6 +638,24 @@ final class WWDS_Tutorial_Sync
         if (!current_user_can('manage_options')) wp_die('无权操作');
         check_admin_referer('wwds_tutorial_process');
         $this->process();
+        wp_safe_redirect(admin_url('admin.php?page=wwds-tutorial'));
+        exit;
+    }
+
+    public function process_one()
+    {
+        if (!current_user_can('manage_options')) wp_die('无权操作');
+        $id = absint($_POST['id'] ?? 0);
+        check_admin_referer('wwds_tutorial_process_one_' . $id);
+        global $wpdb;
+        $table = $this->table();
+        $row = $wpdb->get_row($wpdb->prepare("SELECT post_id,state FROM $table WHERE id=%d", $id));
+        if (!$row || $row->state !== 'queued') wp_die('该同步任务已不在待发送队列。');
+        $latest_id = (int)$wpdb->get_var($wpdb->prepare(
+            "SELECT MAX(id) FROM $table WHERE post_id=%d", (int)$row->post_id
+        ));
+        if ($latest_id !== $id) wp_die('该任务已被更新版本取代，请刷新列表。');
+        $this->process($id);
         wp_safe_redirect(admin_url('admin.php?page=wwds-tutorial'));
         exit;
     }
