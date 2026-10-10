@@ -62,6 +62,19 @@
 
 ## 后台页内更新与安装启动包（2026-10-10）
 
+### 从 1.0.7 开始制作后端增量更新包
+
+已安装的后端更新器支持只替换 ZIP 中出现的文件。构建下一版时，把**紧邻的上一版**正式 Release 的 ZIP 和清单放在本地，传给构建器；它会校验上一版的产品、版本、大小和 SHA-256，然后只打包新增或内容变化的文件：
+
+```shell
+mkdir deploy-artifacts/release-v1.0.8
+php backend/scripts/build-update.php --project=jc52okp --version=1.0.8 --from=1.0.7 --notes-file=deploy-artifacts/release-v1.0.8-notes.txt --output=deploy-artifacts/release-v1.0.8 --base-package=deploy-artifacts/release-v1.0.7/jc52okp-update.zip --base-manifest=deploy-artifacts/release-v1.0.7/update-manifest.json
+```
+
+之后制作 1.0.9 时，以 **1.0.8 的 ZIP 和清单**为基线。增量包的 `update-version.json` 保留完整文件哈希清单，因此基线即使也是增量包，仍能继续比较。首次安装包仍使用原有首发构建器；不传 `--base-package` 和 `--base-manifest` 时可生成完整更新包。
+
+如果源代码删除了旧版文件，构建器会停止并指出文件名；当前在线安装器不能安全地自动删除旧文件，需要为该版本另行设计带备份与恢复的清理流程。数据库迁移同样不通过此文件更新包自动执行。WordPress 插件和微信小程序分别发布，不进入教程后端更新包。
+
 此前上线的 `1.0.0` 只有只读检查页，无法从自身安装新版更新器。首次启用需在宝塔备份站点代码后，手工把 `deploy-artifacts/backend-update-bootstrap-20261010.zip` 解压到后端**站点根目录**（`app/`、`public/`、`scripts/` 的上一级），覆盖其中 6 个文件。压缩包 SHA-256：`29867d2fe2567cd69875c49b9ef5bd7bf828f8d1cabb99b98f64951a63ab0b07`。它不包含 `.env`、数据库和上传目录；不改变 `APP_VERSION=1.0.0`。本启动包只提供更新界面与执行器，不包含之前的 Yutu 图床改动。
 
 刷新“教程后端更新”后，检查会留在后台当前页，网络请求期间显示流动进度条。更新中心仍返回 404 时，没有可安装的正式发布；须先在更新中心发布与当前项目、起始版本匹配的包。发现发布后，超级管理员点“安装此版本”会启动后台任务。下载与健康检查显示无百分比的活动进度；预检、备份和替换文件显示各阶段真实的完成数。程序会备份被替换文件，安装失败则恢复；新增或修改数据库迁移的包会在替换前拒绝，须另行备份数据库并人工发布。
