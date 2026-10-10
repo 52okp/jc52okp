@@ -1,4 +1,20 @@
-<view class="page"><view class="profile card"><button open-type="chooseAvatar" bindchooseavatar="chooseAvatar" class="avatar-button"><image class="avatar" src="{{avatar}}" mode="aspectFill"/></button><view class="name" bindtap="openNick"><view>{{member.nickname || '微信用户'}}</view><view class="small">{{member.nickname ? 'ID: ' + member.id : '点击设置昵称'}}</view></view></view>
-<view class="card menu"><view data-url="/pages/favorites/favorites" bindtap="go">⭐ 我的收藏　›</view><view data-url="/pages/history/history" bindtap="go">🕘 浏览历史　›</view></view>
-<view class="card menu"><view data-url="/pages/about/about" bindtap="go">ℹ️ 关于我们　›</view></view>
-<view wx:if="{{showNick}}" class="mask"><view class="dialog card"><view class="heading">设置昵称</view><input type="nickname" value="{{nicknameInput}}" bindinput="nickInput" placeholder="点击使用微信昵称或手动输入"/><view class="buttons"><button bindtap="closeNick">取消</button><button class="primary" loading="{{saving}}" bindtap="saveNick">保存</button></view></view></view></view>
+<view class="my-screen">
+  <view class="my-header" style="padding-top:{{topInset}}px;"><view class="header-title">我的</view><view class="header-subtitle">管理你的学习与收藏</view></view>
+  <view class="profile-card">
+    <view class="profile-glow"></view>
+    <button open-type="chooseAvatar" bindchooseavatar="chooseAvatar" class="avatar-button"><image class="avatar" src="{{avatar}}" mode="aspectFill"/></button>
+    <view class="profile-name" bindtap="openNick"><view class="name">{{member.nickname || '微信用户'}}</view><view class="profile-id">{{member.id ? 'ID: ' + member.id : '点击设置昵称'}}</view></view>
+    <view class="profile-arrow" bindtap="openNick">›</view>
+  </view>
+  <view class="menu-card">
+    <view class="menu-row" data-url="/pages/favorites/favorites" bindtap="go"><view class="menu-icon favorite">★</view><text>我的收藏</text><text class="chevron">›</text></view>
+    <view class="menu-row" data-url="/pages/history/history" bindtap="go"><view class="menu-icon history">◷</view><text>浏览历史</text><text class="chevron">›</text></view>
+    <view class="menu-row" bindtap="goCategory"><view class="menu-icon explore">▦</view><text>教程分类</text><text class="chevron">›</text></view>
+  </view>
+  <view class="menu-card secondary">
+    <view class="menu-row" data-url="/pages/about/about" bindtap="go"><view class="menu-icon about">i</view><text>关于我们</text><text class="chevron">›</text></view>
+    <button class="menu-row contact-row" open-type="contact"><view class="menu-icon contact">✉</view><text>联系客服</text><text class="chevron">›</text></button>
+  </view>
+  <view class="bottom-waves"><view></view><view></view></view>
+  <view wx:if="{{showNick}}" class="mask"><view class="dialog card"><view class="heading">设置昵称</view><input type="nickname" value="{{nicknameInput}}" bindinput="nickInput" placeholder="点击使用微信昵称或手动输入"/><view class="buttons"><button bindtap="closeNick">取消</button><button class="primary" loading="{{saving}}" bindtap="saveNick">保存</button></view></view></view>
+</view>

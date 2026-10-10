@@ -1,11 +1,17 @@
-.brand { text-align: center; padding: 30rpx 0 40rpx; font-size: 34rpx; font-weight: 800; }
-.brand image { width: 140rpx; height: 140rpx; border-radius: 30rpx; display: block; margin: 0 auto 20rpx; }
-.menu view,.menu button { padding: 25rpx 0; border-bottom: 1rpx solid #e5edfa; }
-.menu button { background: transparent; text-align: left; font-size: 28rpx; line-height: normal; }
-.menu button::after { border: 0; }
-.version { text-align: center; color: #9aa3b2; font-size: 22rpx; }
-.mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; }
-.dialog { width: 610rpx; text-align: center; }
-.heading { font-size: 32rpx; font-weight: 800; margin-bottom: 22rpx; }
-.body { max-height: 55vh; text-align: left; white-space: pre-wrap; line-height: 1.8; }
-.follow-image { width: 390rpx; display: block; margin: 20rpx auto; }
+.about-page { padding-top:38rpx; }
+.brand { text-align:center; padding:54rpx 26rpx; }
+.brand image { width:126rpx; height:126rpx; border-radius:30rpx; display:block; margin:0 auto 18rpx; }
+.brand-name { font-size:38rpx; font-weight:850; }
+.brand-desc { color:#8291aa; font-size:23rpx; margin-top:8rpx; font-weight:400; }
+.menu { padding:0 28rpx; }
+.menu view,.menu button { min-height:96rpx; display:flex; align-items:center; justify-content:space-between; padding:0; border-bottom:1rpx solid #e9eef7; box-sizing:border-box; }
+.menu view:last-child { border:0; }
+.menu button { width:100%; margin:0; background:transparent; text-align:left; font-size:28rpx; line-height:normal; border-radius:0; }
+.arrow { color:#9aa8bd; font-size:38rpx; }
+.version { text-align:center; color:#9aa8bb; font-size:21rpx; margin-top:28rpx; }
+.mask { position:fixed; inset:0; z-index:9; background:rgba(20,38,74,.42); display:flex; align-items:center; justify-content:center; }
+.dialog { width:610rpx; text-align:center; margin:0; padding:34rpx; }
+.heading { font-size:32rpx; font-weight:800; margin-bottom:22rpx; }
+.body { max-height:55vh; text-align:left; white-space:pre-wrap; line-height:1.8; }
+.follow-image { width:390rpx; display:block; margin:20rpx auto; }
+.dialog button { margin-top:24rpx; border-radius:99rpx; background:#eaf1ff; color:#376ffa; }

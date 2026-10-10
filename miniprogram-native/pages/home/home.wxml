@@ -1,11 +1,30 @@
-<view class="hero" bindtap="openHero">
-  <image wx:if="{{heroImage}}" src="{{heroImage}}" mode="aspectFill" class="hero-image"/>
-  <view class="hero-title">stable DiffusionAI教程</view><view class="hero-sub">Stable Diffusion 教程 · 模型 · 工具</view>
-</view>
-<view class="page">
-  <view class="search card"><input value="{{keyword}}" bindinput="searchInput" bindconfirm="search" confirm-type="search" placeholder="搜索教程 / 模型 / 工具"/><button size="mini" class="primary" bindtap="search">搜索</button></view>
-  <view class="categories card"><view wx:for="{{categories}}" wx:key="id" class="category" data-index="{{index}}" bindtap="openCategory"><view class="category-icon"><image wx:if="{{item.icon}}" src="{{item.icon}}" mode="aspectFill"/><text wx:else>{{item.name[0]}}</text></view><text>{{item.name}}</text></view></view>
-  <view class="section">推荐教程</view>
-  <article-card wx:for="{{recommend}}" wx:key="id" article="{{item}}" bindopen="openArticle"/>
-  <view wx:if="{{!loading && !recommend.length}}" class="empty">暂无推荐</view>
+<view class="home-screen">
+  <view class="hero-stage" style="padding-top:{{topInset}}px;">
+    <view class="hero-orb hero-orb-one"></view><view class="hero-orb hero-orb-two"></view>
+    <image class="hero-art" src="/static/illustrations/home-hero.png" mode="aspectFit"/>
+    <view class="hero-veil"></view>
+    <view class="hero-brand"><view class="brand-title">AI教程</view><view class="brand-subtitle">发现更好的 AI 创作方式</view></view>
+    <view class="hero-copy">
+      <view class="hero-script">AI Tutorial</view>
+      <view class="hero-headline">让 AI 更简单<text>更好用</text></view>
+      <view class="hero-description">从入门到实战，系统学习你的 AI 技能</view>
+    </view>
+  </view>
+  <view class="home-content">
+    <view class="search-shell">
+      <view class="search-icon"></view>
+      <input value="{{keyword}}" bindinput="searchInput" bindconfirm="search" confirm-type="search" placeholder="搜索教程 / 模型 / 工具" placeholder-class="search-placeholder"/>
+      <view class="search-go" bindtap="search">→</view>
+    </view>
+    <view class="quick-grid">
+      <view wx:for="{{quickCategories}}" wx:key="id" class="quick-item" data-index="{{index}}" bindtap="openCategory">
+        <view class="quick-icon quick-{{item.kind}}"><image wx:if="{{item.icon}}" class="quick-icon-image" src="{{item.icon}}" mode="aspectFit"/><text wx:else>{{item.glyph}}</text></view>
+        <view class="quick-title">{{item.name}}</view>
+        <view class="quick-hint">{{item.hint}}</view>
+      </view>
+    </view>
+    <view class="section-heading"><text>{{sectionTitle}}</text><view bindtap="openMore">查看更多 <text>›</text></view></view>
+    <article-card wx:for="{{recommend}}" wx:key="id" article="{{item}}" bindopen="openArticle"/>
+    <view wx:if="{{!loading && !recommend.length}}" class="empty">暂无教程，去分类看看吧</view>
+  </view>
 </view>

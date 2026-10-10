@@ -1,4 +1,5 @@
-.card { color: #465a75; line-height: 1.9; }
+.card { color: #465a75; line-height: 1.9; padding:36rpx; }
 .title { color: #1f2a3a; font-size: 36rpx; font-weight: 800; margin-bottom: 28rpx; }
 .section { color: #1f2a3a; font-size: 31rpx; font-weight: 700; margin: 30rpx 0 10rpx; }
 .note { color: #7b8ca6; font-size: 25rpx; padding-top: 24rpx; margin-top: 30rpx; border-top: 1rpx solid #dbe6f8; }
+button { margin-top:30rpx; border-radius:99rpx; background:#eaf1ff; color:#376ffa; }

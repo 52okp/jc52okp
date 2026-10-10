@@ -1,8 +1,9 @@
 const { getMemberInfo, updateProfile, uploadAvatar } = require('../../common/api');
+const { topInset } = require('../../common/ui');
 Page({
-  data: { member: {}, avatar: '/static/favicon.png', nicknameInput: '', showNick: false, saving: false },
+  data: { member: {}, avatar: '/static/favicon.png', nicknameInput: '', showNick: false, saving: false, topInset: topInset() },
   onShow() { this.load(); },
-  async load() { try { const member = await getMemberInfo(); this.setData({ member: member || {}, avatar: member.avatar || '/static/favicon.png' }); } catch (_) {} },
+  async load() { try { const member = await getMemberInfo() || {}; this.setData({ member, avatar: member.avatar || '/static/favicon.png' }); } catch (_) {} },
   chooseAvatar(event) {
     const filePath = event.detail.avatarUrl;
     if (!filePath) return;
@@ -24,5 +25,6 @@ Page({
     catch (_) { wx.showToast({ title: '保存失败', icon: 'none' }); }
     finally { this.setData({ saving: false }); }
   },
-  go(event) { wx.navigateTo({ url: event.currentTarget.dataset.url }); }
+  go(event) { wx.navigateTo({ url: event.currentTarget.dataset.url }); },
+  goCategory() { wx.switchTab({ url: '/pages/category/category' }); }
 });

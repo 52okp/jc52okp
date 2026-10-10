@@ -1,1 +1,1 @@
-<view class="page"><article-card wx:for="{{list}}" wx:key="id" article="{{item}}" bindopen="openArticle"/><view wx:if="{{loading}}" class="empty">加载中…</view><view wx:elif="{{!list.length}}" class="empty">还没有浏览记录</view></view>
+<view class="page collection-page"><view class="collection-title">浏览历史</view><view class="collection-subtitle">接着上次的进度继续探索</view><article-card wx:for="{{list}}" wx:key="id" article="{{item}}" bindopen="openArticle"/><view wx:if="{{loading}}" class="empty">加载中…</view><view wx:elif="{{!list.length}}" class="empty">还没有浏览记录</view></view>

@@ -1,9 +1,10 @@
 const { getArticleList } = require('../../common/api');
 Page({
-  data: { keyword: '', categoryId: 0, list: [], page: 1, total: 0, loading: false, noMore: false },
+  data: { keyword: '', categoryId: 0, heading: '探索教程', list: [], page: 1, total: 0, loading: false, noMore: false },
   onLoad(options) {
-    this.setData({ keyword: options.keyword ? decodeURIComponent(options.keyword) : '', categoryId: Number(options.category_id) || 0 });
-    if (options.title) wx.setNavigationBarTitle({ title: decodeURIComponent(options.title) });
+    const heading = options.title ? decodeURIComponent(options.title) : '探索教程';
+    this.setData({ keyword: options.keyword ? decodeURIComponent(options.keyword) : '', categoryId: Number(options.category_id) || 0, heading });
+    wx.setNavigationBarTitle({ title: heading });
     this.load(true);
   },
   onPullDownRefresh() { this.load(true).finally(() => wx.stopPullDownRefresh()); },

@@ -1,3 +1,9 @@
-.search { display: flex; align-items: center; gap: 12rpx; }
-.search input { flex: 1; }
-.search button { margin: 0; }
+.explore-page { padding-top:38rpx; }
+.page-heading { font-size:40rpx; font-weight:850; }
+.page-subtitle { color:#8a98af; font-size:23rpx; margin-top:7rpx; }
+.search-shell { display:flex; align-items:center; gap:16rpx; height:88rpx; margin:32rpx 0 26rpx; padding:0 12rpx 0 28rpx; background:#fff; border-radius:99rpx; box-shadow:0 12rpx 30rpx rgba(66,106,183,.1); }
+.search-glyph { color:#8a9ab5; font-size:48rpx; line-height:1; }
+.search-shell input { flex:1; min-width:0; font-size:25rpx; }
+.search-button { background:linear-gradient(135deg,#6398ff,#346ffa); color:#fff; border-radius:99rpx; height:62rpx; padding:0 30rpx; display:flex; align-items:center; font-size:23rpx; }
+.result-count { color:#92a0b7; font-size:22rpx; padding:0 4rpx 18rpx; }
+.end-note { color:#9aa7bd; text-align:center; font-size:22rpx; padding:40rpx; }

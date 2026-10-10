@@ -1,5 +1,15 @@
-<view class="card article-row" bindtap="open">
-  <image wx:if="{{article.cover}}" class="article-cover" src="{{article.cover}}" mode="widthFix" lazy-load/>
-  <view wx:else class="article-cover fallback">SD</view>
-  <view class="article-body"><view class="article-title">{{article.title}}</view><view class="article-summary">{{article.summary}}</view><view class="meta">{{article.update_at || ('阅读 ' + article.num_read)}}</view></view>
+<view class="article-card {{compact ? 'compact' : ''}}" bindtap="open">
+  <view class="cover-box">
+    <image wx:if="{{article.cover}}" class="article-cover" src="{{article.cover}}" mode="aspectFit" lazy-load/>
+    <view wx:else class="article-cover fallback">AI</view>
+  </view>
+  <view class="article-body">
+    <view wx:if="{{tagLabel && !compact}}" class="article-tag">{{tagLabel}}</view>
+    <view class="article-title">{{article.title}}</view>
+    <view class="article-summary">{{article.summary}}</view>
+    <view class="article-meta">
+      <text>◉ {{viewsLabel}}</text>
+      <text wx:if="{{dateLabel}}">◷ {{dateLabel}}</text>
+    </view>
+  </view>
 </view>

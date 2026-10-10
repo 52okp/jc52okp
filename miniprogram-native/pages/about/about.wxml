@@ -1,5 +1,5 @@
-<view class="page"><view class="brand"><image src="/static/favicon.png" mode="aspectFill"/><view>52okpAI教程站</view></view>
-<view class="card menu"><view bindtap="privacy">📄 隐私政策　›</view><button open-type="contact">💬 联系客服　›</button><view bindtap="follow">❤️ 关注我们　›</view></view>
+<view class="page about-page"><view class="brand card"><image src="/static/favicon.png" mode="aspectFill"/><view class="brand-name">AI教程</view><view class="brand-desc">发现更好的 AI 创作方式</view></view>
+<view class="card menu"><view bindtap="privacy"><text>隐私政策</text><text class="arrow">›</text></view><button open-type="contact"><text>联系客服</text><text class="arrow">›</text></button><view bindtap="follow"><text>关注我们</text><text class="arrow">›</text></view></view>
 <view class="version">版本 v2.0.0</view>
 <view wx:if="{{showPrivacy}}" class="mask"><view class="dialog card"><view class="heading">隐私政策</view><scroll-view scroll-y class="body">{{setting.privacy_content || '暂无内容'}}</scroll-view><button bindtap="close">关闭</button></view></view>
 <view wx:if="{{showFollow}}" class="mask"><view class="dialog card"><view class="heading">关注我们</view><image wx:if="{{setting.follow_image}}" src="{{setting.follow_image}}" mode="widthFix" class="follow-image" bindtap="preview"/><view wx:else>暂未设置关注图</view><view>{{setting.follow_text}}</view><button bindtap="close">关闭</button></view></view>

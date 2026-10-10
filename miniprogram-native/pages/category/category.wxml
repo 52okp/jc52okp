@@ -1,2 +1,20 @@
-<view class="layout"><scroll-view scroll-y class="side"><view wx:for="{{categories}}" wx:key="id" class="side-item {{categoryId === item.id ? 'active' : ''}}" data-index="{{index}}" bindtap="select">{{item.name}}</view><view wx:if="{{!categories.length}}" class="empty">暂无分类</view></scroll-view>
-<scroll-view scroll-y class="main" bindscrolltolower="more"><view class="heading">{{categoryName}}</view><article-card wx:for="{{list}}" wx:key="id" article="{{item}}" bindopen="openArticle"/><view wx:if="{{loading}}" class="empty">加载中…</view><view wx:elif="{{!list.length}}" class="empty">该分类暂无内容</view></scroll-view></view>
+<view class="category-screen">
+  <view class="category-header" style="padding-top:{{topInset}}px;"><view class="header-title">分类</view><view class="header-subtitle">按主题查找你感兴趣的教程</view></view>
+  <view class="feature-banner" bindtap="openSelected">
+    <view class="banner-copy"><view class="banner-title">{{categoryName || '探索 AI 教程'}}</view><view class="banner-subtitle">从入门到进阶的完整教程合集</view><view class="banner-button">立即学习 →</view></view>
+    <image src="/static/illustrations/category-banner.png" class="banner-art" mode="aspectFit"/>
+  </view>
+  <view class="category-body">
+    <scroll-view scroll-y class="side">
+      <view wx:for="{{categories}}" wx:key="id" class="side-item {{categoryId === item.id ? 'active' : ''}}" data-index="{{index}}" bindtap="select">{{item.name}}</view>
+      <view wx:if="{{!initializing && !categories.length}}" class="side-empty">暂无分类</view>
+    </scroll-view>
+    <scroll-view scroll-y class="main" lower-threshold="100" bindscrolltolower="more">
+      <view class="list-heading"><text>{{categoryName}}</text><text wx:if="{{total}}" class="list-total">共 {{total}} 篇</text></view>
+      <article-card wx:for="{{list}}" wx:key="id" article="{{item}}" compact="{{true}}" bindopen="openArticle"/>
+      <view wx:if="{{loading || initializing}}" class="result-empty">加载中…</view>
+      <view wx:elif="{{!list.length}}" class="result-empty">该分类暂无内容</view>
+      <view wx:elif="{{list.length >= total}}" class="result-end">已经看完这一类教程啦</view>
+    </scroll-view>
+  </view>
+</view>
