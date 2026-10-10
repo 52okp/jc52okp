@@ -2,7 +2,7 @@
   <view class="hero-stage {{heroImage ? 'has-banner' : ''}}" style="padding-top:{{topInset}}px;" bindtap="openHero">
     <view class="hero-orb hero-orb-one"></view><view class="hero-orb hero-orb-two"></view>
     <image wx:if="{{heroImage}}" class="hero-background" src="{{heroImage}}" mode="aspectFill" binderror="heroError"/>
-    <image wx:else class="hero-art" src="/static/illustrations/home-hero.png" mode="aspectFit"/>
+    <image wx:elif="{{heroReady}}" class="hero-art" src="/static/illustrations/home-hero.png" mode="aspectFit"/>
     <view class="hero-veil"></view>
     <view class="hero-brand"><view class="brand-title">AI教程</view><view class="brand-subtitle">发现更好的 AI 创作方式</view></view>
     <view class="hero-copy">

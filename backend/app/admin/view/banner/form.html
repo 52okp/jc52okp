@@ -2,9 +2,9 @@
     <div class="layui-card-body padding-left-40">
         <div class="layui-row layui-col-space15">
             <div class="layui-col-xs4 text-center padding-top-15">
-                <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" data-cut-width="750" data-cut-height="420" name="image" value="{$vo.image|default=''}">
+                <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" name="image" value="{$vo.image|default=''}">
                 <script>$('[name=image]').uploadOneImage();</script>
-                <div class="color-desc margin-top-5">首页头图(建议 750x420)</div>
+                <div class="color-desc margin-top-5">小程序首页头图，建议 1536×1024（3:2），上传时保留原图比例</div>
             </div>
             <div class="layui-col-xs8">
                 <label class="block relative">

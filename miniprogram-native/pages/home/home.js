@@ -1,29 +1,38 @@
 const { BASE_URL, getHome, getArticleList, shareImageUrl } = require('../../common/api');
 const { topInset, backendImageUrl, quickCategories } = require('../../common/ui');
 Page({
-  data: { banners: [], categories: [], quickCategories: [], recommend: [], heroImage: '', heroArticleId: 0, keyword: '', loading: true, topInset: topInset(), sectionTitle: '推荐教程' },
+  data: { banners: [], categories: [], quickCategories: [], recommend: [], heroImage: '', heroReady: false, heroArticleId: 0, keyword: '', loading: true, topInset: topInset(), sectionTitle: '推荐教程' },
   onShow() { this.load(); },
-  onPullDownRefresh() { this.load().finally(() => wx.stopPullDownRefresh()); },
+  onPullDownRefresh() {
+    this.setData({ heroImage: '', heroReady: false, heroArticleId: 0 });
+    this.load().finally(() => wx.stopPullDownRefresh());
+  },
   async load() {
+    const version = (this.loadVersion || 0) + 1;
+    this.loadVersion = version;
     this.setData({ loading: true });
     try {
       const data = await getHome();
+      if (version !== this.loadVersion) return;
       const banners = data.banners || [];
       const heroBanner = banners.find(item => backendImageUrl(item.image, BASE_URL));
       const categories = data.categories || [];
+      this.setData({ banners, categories, quickCategories: quickCategories(categories, BASE_URL),
+        heroImage: heroBanner ? backendImageUrl(heroBanner.image, BASE_URL) : '', heroReady: true,
+        heroArticleId: heroBanner ? Number(heroBanner.article_id) || 0 : 0 });
       let recommend = data.recommend || [];
       let sectionTitle = '推荐教程';
       if (!recommend.length) {
         try {
           const latest = await getArticleList({ page: 1, limit: 6 });
+          if (version !== this.loadVersion) return;
           recommend = latest.list || [];
           sectionTitle = '最新教程';
         } catch (_) {}
       }
-      this.setData({ banners, categories, quickCategories: quickCategories(categories, BASE_URL), recommend,
-        sectionTitle, heroImage: heroBanner ? backendImageUrl(heroBanner.image, BASE_URL) : '',
-        heroArticleId: heroBanner ? Number(heroBanner.article_id) || 0 : 0 });
-    } catch (_) {} finally { this.setData({ loading: false }); }
+      if (version === this.loadVersion) this.setData({ recommend, sectionTitle });
+    } catch (_) { if (version === this.loadVersion && !this.data.heroReady) this.setData({ heroReady: true }); }
+    finally { if (version === this.loadVersion) this.setData({ loading: false }); }
   },
   searchInput(event) { this.setData({ keyword: event.detail.value }); },
   iconError(event) {
