@@ -2,7 +2,10 @@
   <view class="my-header" style="padding-top:{{topInset}}px;"><view class="header-title">我的</view><view class="header-subtitle">管理你的学习与收藏</view></view>
   <view class="profile-card">
     <view class="profile-glow"></view>
-    <button open-type="chooseAvatar" bindchooseavatar="chooseAvatar" class="avatar-button"><image class="avatar" src="{{avatar}}" mode="aspectFill"/></button>
+    <view class="avatar-shell">
+      <image class="avatar" src="{{avatar}}" mode="aspectFill"/>
+      <button open-type="chooseAvatar" bindchooseavatar="chooseAvatar" class="avatar-button" aria-label="更换头像"></button>
+    </view>
     <view class="profile-name" bindtap="openNick"><view class="name">{{member.nickname || '微信用户'}}</view><view class="profile-id">{{member.id ? 'ID: ' + member.id : '点击设置昵称'}}</view></view>
     <view class="profile-arrow" bindtap="openNick">›</view>
   </view>
@@ -13,7 +16,7 @@
   </view>
   <view class="menu-card secondary">
     <view class="menu-row" data-url="/pages/about/about" bindtap="go"><view class="menu-icon about">i</view><text>关于我们</text><text class="chevron">›</text></view>
-    <button class="menu-row contact-row" open-type="contact"><view class="menu-icon contact">✉</view><text>联系客服</text><text class="chevron">›</text></button>
+    <view class="menu-row contact-row"><view class="menu-icon contact">✉</view><text>联系客服</text><text class="chevron">›</text><button class="contact-button" open-type="contact" aria-label="联系客服"></button></view>
   </view>
   <view class="bottom-waves"><view></view><view></view></view>
   <view wx:if="{{showNick}}" class="mask"><view class="dialog card"><view class="heading">设置昵称</view><input type="nickname" value="{{nicknameInput}}" bindinput="nickInput" placeholder="点击使用微信昵称或手动输入"/><view class="buttons"><button bindtap="closeNick">取消</button><button class="primary" loading="{{saving}}" bindtap="saveNick">保存</button></view></view></view>

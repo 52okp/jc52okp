@@ -1,24 +1,26 @@
 .my-screen { min-height:100vh; position:relative; overflow:hidden; padding:0 28rpx 50rpx; box-sizing:border-box; background:radial-gradient(circle at 86% 6%,#dae8ff 0,transparent 39%),linear-gradient(180deg,#f4f8ff,#eff6ff); }
-.my-header { position:relative; z-index:1; padding-left:4rpx; padding-bottom:30rpx; }
+.my-header { position:relative; z-index:1; padding-left:4rpx; padding-bottom:42rpx; }
 .header-title { font-size:46rpx; font-weight:850; line-height:1.1; }
 .header-subtitle { font-size:24rpx; color:#8291aa; margin-top:9rpx; }
-.profile-card { position:relative; z-index:1; display:flex; align-items:center; height:224rpx; padding:0 36rpx; border-radius:26rpx; overflow:hidden; background:linear-gradient(115deg,#8db7ff 0,#afcdfb 56%,#c3c2fa 100%); box-shadow:0 16rpx 32rpx rgba(71,115,205,.15); box-sizing:border-box; }
+.profile-card { position:relative; z-index:1; display:flex; align-items:center; height:254rpx; padding:0 36rpx; border-radius:26rpx; overflow:hidden; background:linear-gradient(115deg,#8db7ff 0,#afcdfb 56%,#c3c2fa 100%); box-shadow:0 16rpx 32rpx rgba(71,115,205,.15); box-sizing:border-box; }
 .profile-card::before { content:''; position:absolute; right:-100rpx; bottom:-170rpx; width:440rpx; height:300rpx; border-radius:50%; background:rgba(255,255,255,.18); transform:rotate(-20deg); }
 .profile-glow { position:absolute; left:-70rpx; top:-70rpx; width:260rpx; height:260rpx; border-radius:50%; background:rgba(255,255,255,.17); }
-.avatar-button { position:relative; z-index:1; flex-shrink:0; width:132rpx; height:132rpx; padding:0; margin:0 28rpx 0 0; background:transparent; border:5rpx solid rgba(255,255,255,.78); border-radius:50%; overflow:hidden; box-shadow:0 6rpx 24rpx rgba(34,77,162,.16); }
-.avatar { width:100%; height:100%; border-radius:50%; }
+.avatar-shell { position:relative; z-index:1; flex:0 0 154rpx; width:154rpx; height:154rpx; margin-right:28rpx; border:5rpx solid rgba(255,255,255,.82); border-radius:50%; overflow:hidden; box-sizing:border-box; box-shadow:0 6rpx 24rpx rgba(34,77,162,.16); }
+.avatar { display:block; width:100%; height:100%; border-radius:50%; }
+.avatar-button { position:absolute; z-index:2; top:0; left:0; width:100%; height:100%; min-width:0; min-height:0; padding:0; margin:0; border:0; border-radius:50%; background:transparent; opacity:0; }
 .profile-name { position:relative; z-index:1; min-width:0; flex:1; color:#0a2146; }
 .name { font-size:37rpx; font-weight:850; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .profile-id { font-size:21rpx; color:#f7fbff; margin-top:15rpx; }
 .profile-arrow { position:relative; z-index:1; color:#fff; font-size:46rpx; font-weight:300; }
-.menu-card { position:relative; z-index:1; margin-top:26rpx; padding:0 28rpx; border-radius:26rpx; background:rgba(255,255,255,.96); box-shadow:0 12rpx 32rpx rgba(67,107,175,.07); }
-.menu-card.secondary { margin-top:24rpx; }
-.menu-row { height:100rpx; display:flex; align-items:center; gap:22rpx; border-bottom:1rpx solid #e9eef6; color:#192846; font-size:30rpx; box-sizing:border-box; }
+.menu-card { position:relative; z-index:1; margin-top:30rpx; padding:0 28rpx; border-radius:26rpx; background:rgba(255,255,255,.96); box-shadow:0 12rpx 32rpx rgba(67,107,175,.07); }
+.menu-card.secondary { margin-top:30rpx; }
+.menu-row { height:106rpx; display:flex; align-items:center; gap:22rpx; border-bottom:1rpx solid #e9eef6; color:#192846; font-size:30rpx; box-sizing:border-box; }
 .menu-row:last-child { border-bottom:0; }
 .menu-icon { width:44rpx; height:44rpx; display:flex; align-items:center; justify-content:center; font-size:34rpx; font-weight:700; }
 .menu-icon.favorite { color:#ffb22c; }.menu-icon.history { color:#2f4169; font-size:43rpx; }.menu-icon.explore { color:#5e89e7; }.menu-icon.about { color:#4b82f8; border-radius:50%; font-size:29rpx; }.menu-icon.contact { color:#7895c6; }
 .chevron { color:#96a5be; font-size:39rpx; font-weight:300; margin-left:auto; }
-.contact-row { width:100%; padding:0; margin:0; border-radius:0; background:transparent; line-height:normal; text-align:left; }
+.contact-row { position:relative; overflow:hidden; }
+.contact-button { position:absolute; z-index:2; top:0; left:0; width:100%; height:100%; min-width:0; min-height:0; padding:0; margin:0; border:0; border-radius:0; background:transparent; opacity:0; }
 .bottom-waves { position:absolute; left:0; right:0; bottom:-30rpx; height:280rpx; opacity:.75; pointer-events:none; }
 .bottom-waves view { position:absolute; width:950rpx; height:300rpx; border-radius:50%; background:rgba(171,200,255,.2); left:-80rpx; bottom:-170rpx; transform:rotate(-10deg); }
 .bottom-waves view:last-child { background:rgba(207,224,255,.46); left:130rpx; bottom:-205rpx; transform:rotate(12deg); }
