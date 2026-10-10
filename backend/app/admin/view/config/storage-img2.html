@@ -2,10 +2,26 @@
     <div class="layui-card-body padding-top-20">
         <div class="color-text layui-code text-center layui-bg-gray" style="border-left-width:1px;margin:0 0 15px 40px">
             <p class="margin-bottom-5 font-w7">图片由本站服务器上传到 <a target="_blank" rel="noopener noreferrer" href="https://img2.mm-8.cn/api">Yutu 图床 API</a>，支持 jpg、png、gif、webp、bmp。</p>
-            <p>Token 保存在后台配置中，仅由服务器调用 API；私有文件和非图片文件继续存到本地。</p>
+            <p>可用图床登录邮箱和密码自动获取 Token；密码不会保存。私有文件和非图片文件继续存到本地。</p>
         </div>
 
         {include file='config/storage-0'}
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" for="img2_email"><b class="color-green">登录邮箱</b><br><span class="nowrap color-desc">Email</span></label>
+            <div class="layui-input-block">
+                <input id="img2_email" type="email" name="img2_email" value="" autocomplete="username" placeholder="图床账号的登录邮箱" class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" for="img2_password"><b class="color-green">登录密码</b><br><span class="nowrap color-desc">Password</span></label>
+            <div class="layui-input-block">
+                <input id="img2_password" type="password" name="img2_password" value="" autocomplete="new-password" placeholder="只用于本次获取 Token，不会保存" class="layui-input">
+                <p class="help-block">填写邮箱和密码后点击下方按钮，后台会向图床登录接口获取 Token 并保存；下次无需再填。</p>
+                <button class="layui-btn layui-btn-normal margin-top-10" type="submit">登录获取 Token 并保存</button>
+            </div>
+        </div>
 
         <div class="layui-form-item">
             <label class="layui-form-label label-required" for="storage.img2_token">
@@ -13,7 +29,7 @@
             </label>
             <div class="layui-input-block">
                 <input id="storage.img2_token" type="password" name="storage.img2_token" value="" autocomplete="new-password" placeholder="{if $img2Configured}已配置，留空保持不变{else}请输入图床账户生成的 Token{/if}" class="layui-input">
-                <p class="help-block">从图床账户获取 Token。可直接填 Token，不需要填写 Bearer 前缀；页面不会回显已保存的 Token。</p>
+                <p class="help-block">也可手动填写 Token，不需要 Bearer 前缀。与登录邮箱、密码二选一；页面不会回显已保存的 Token。</p>
             </div>
         </div>
 

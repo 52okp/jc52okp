@@ -16,6 +16,50 @@ class Img2Storage implements StorageInterface
 
     private const API = 'https://img2.mm-8.cn/api/v1';
 
+    /** Exchange the image-host account credentials for an API token. */
+    public static function issueToken(string $email, string $password): string
+    {
+        $email = trim($email);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 254 || $password === '') {
+            throw new Exception('请填写有效的图床登录邮箱和密码。');
+        }
+        $curl = curl_init(self::API . '/tokens');
+        if ($curl === false) {
+            throw new Exception('无法连接图床登录接口。');
+        }
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => ['email' => $email, 'password' => $password],
+            CURLOPT_HTTPHEADER => ['Accept: application/json'],
+            CURLOPT_TIMEOUT => 20,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+        ]);
+        $body = curl_exec($curl);
+        $status = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        if (!is_string($body)) {
+            throw new Exception('图床登录接口连接失败，请稍后重试。');
+        }
+        return self::parseTokenResponse($status, $body);
+    }
+
+    private static function parseTokenResponse(int $status, string $body): string
+    {
+        $result = json_decode($body, true);
+        if ($status !== 200 || !is_array($result) || ($result['status'] ?? false) !== true) {
+            throw new Exception('图床登录失败（HTTP ' . $status . '），请检查邮箱和密码。');
+        }
+        $token = $result['data']['token'] ?? null;
+        if (!is_string($token) || $token === '' || strlen($token) > 4096 || preg_match('/[\x00-\x20\x7f]/', $token)) {
+            throw new Exception('图床登录成功，但未返回有效的 API Token。');
+        }
+        return $token;
+    }
+
     public function set(string $name, string $file, bool $safe = false, ?string $attname = null): array
     {
         if ($safe) {

@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\admin\Img2Storage;
 use think\admin\Controller;
 use think\admin\Plugin;
 use think\admin\service\AdminService;
@@ -147,14 +148,27 @@ class Config extends Controller
             $this->fetch("storage-{$this->type}");
         } else {
             $post = $this->request->post();
+            $img2Email = trim((string) ($post['img2_email'] ?? ''));
+            $img2Password = (string) ($post['img2_password'] ?? '');
+            unset($post['img2_email'], $post['img2_password']);
             $type = strtolower((string) ($post['storage.type'] ?? ''));
             if (!array_key_exists($type, Storage::types())) {
                 $this->error('不支持的存储引擎。');
             }
             if ($type === 'img2') {
                 $token = trim((string) ($post['storage.img2_token'] ?? ''));
+                if ($img2Email !== '' || $img2Password !== '') {
+                    if ($token !== '') {
+                        $this->error('登录获取 Token 与手动填写 Token 请二选一。');
+                    }
+                    try {
+                        $token = Img2Storage::issueToken($img2Email, $img2Password);
+                    } catch (\think\admin\Exception $exception) {
+                        $this->error($exception->getMessage());
+                    }
+                }
                 if ($token === '' && trim((string) sysconf('storage.img2_token|raw')) === '') {
-                    $this->error('请填写 Yutu 图床 API Token。');
+                    $this->error('请填写图床登录邮箱和密码，或手动填写 API Token。');
                 }
                 if ($token === '') {
                     unset($post['storage.img2_token']);
