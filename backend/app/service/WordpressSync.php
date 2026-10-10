@@ -171,7 +171,7 @@ final class WordpressSync
         return $url;
     }
 
-    private function editorStyles(string $raw): string
+    private function editorStyles(string $raw, bool $moyuGreen = false): string
     {
         $safe = [];
         foreach (explode(';', $raw) as $declaration) {
@@ -191,19 +191,66 @@ final class WordpressSync
                 $safe[] = "$property:$value";
             } elseif ($property === 'text-decoration' && in_array($value, ['none', 'underline', 'line-through'], true)) {
                 $safe[] = "$property:$value";
+            } elseif ($moyuGreen && $this->moyuThemeStyleAllowed($property, $value)) {
+                $safe[] = "$property:$value";
             }
         }
         return implode(';', $safe);
     }
 
+    private function moyuThemeStyleAllowed(string $property, string $value): bool
+    {
+        if (strlen($value) > 220 || preg_match('/[;{}<>]|(?:url|expression|var|attr|calc)\s*\(/i', $value)) return false;
+        $color = '(?:#[0-9a-f]{3,8}|rgba?\([0-9.,%\s]+\)|transparent|white|black)';
+        $unit = '-?(?:(?:\d+(?:\.\d+)?|\.\d+)(?:px|em|rem|%|vw|vh)?|auto)';
+        if (in_array($property, ['color', 'background-color'], true)) {
+            return (bool)preg_match('/^' . $color . '$/i', $value);
+        }
+        if ($property === 'background') {
+            return (bool)preg_match('/^' . $color . '$/i', $value) ||
+                (bool)preg_match('/^linear-gradient\([a-z0-9#.,%()\s-]+\)$/i', $value);
+        }
+        if (in_array($property, ['margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+            'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'width', 'max-width',
+            'min-width', 'height', 'min-height', 'border-radius', 'letter-spacing', 'gap', 'margin-inline'], true)) {
+            return (bool)preg_match('/^' . $unit . '(?:\s+' . $unit . '){0,3}$/i', $value);
+        }
+        if (in_array($property, ['border', 'border-top', 'border-right', 'border-bottom', 'border-left'], true)) {
+            return (bool)preg_match('/^(?:\d+(?:\.\d+)?px)\s+(?:solid|dashed|dotted)\s+' . $color . '$/i', $value);
+        }
+        if ($property === 'box-shadow') {
+            return (bool)preg_match('/^(?:(?:-?\d+(?:\.\d+)?(?:px|em|rem)?|rgba?\([0-9.,%\s]+\)|#[0-9a-f]{3,8}|inset|,)\s*)+$/i', $value);
+        }
+        if (in_array($property, ['line-height', 'flex', 'flex-grow', 'flex-shrink'], true)) {
+            return (bool)preg_match('/^(?:' . $unit . ')(?:\s+' . $unit . '){0,2}$/i', $value);
+        }
+        if ($property === 'font-family') return (bool)preg_match('/^[a-z0-9\x20\x27\x22,_-]+$/i', $value);
+        $choices = [
+            'display' => ['block', 'inline', 'inline-block', 'flex', 'none'],
+            'align-items' => ['start', 'center', 'end', 'flex-start', 'flex-end', 'stretch'],
+            'justify-content' => ['start', 'center', 'end', 'flex-start', 'flex-end', 'space-between', 'space-around'],
+            'align-self' => ['start', 'center', 'end', 'flex-start', 'flex-end', 'stretch'],
+            'overflow' => ['hidden', 'visible', 'scroll', 'auto'],
+            'overflow-x' => ['hidden', 'visible', 'scroll', 'auto'],
+            'white-space' => ['normal', 'nowrap', 'pre-wrap', 'pre-line'],
+            'word-break' => ['normal', 'break-word', 'break-all'],
+            'vertical-align' => ['top', 'middle', 'bottom', 'baseline'],
+            'text-transform' => ['none', 'uppercase', 'lowercase'],
+            'border-collapse' => ['collapse', 'separate'],
+        ];
+        return isset($choices[$property]) && in_array(strtolower($value), $choices[$property], true);
+    }
+
     private function cleanHtml(string $html): string
     {
+        $moyuGreen = (bool)preg_match('/<section\b[^>]*\bdata-wwds-theme\s*=\s*(["\'])moyu-green\1/i', $html);
         $doc = new \DOMDocument('1.0', 'UTF-8');
         $prior = libxml_use_internal_errors(true);
         $doc->loadHTML('<?xml encoding="UTF-8"><div id="sync-root">' . $html . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET);
         libxml_clear_errors();
         libxml_use_internal_errors($prior);
         $allowed = ['p', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'b', 'i', 'u', 's', 'del', 'mark', 'sup', 'sub', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'a', 'img', 'div', 'span', 'figure', 'figcaption', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'];
+        if ($moyuGreen) $allowed[] = 'section';
         $dangerous = ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'svg', 'math'];
         $styles = [
             'p' => 'margin:0 0 1em;', 'h1' => 'font-size:1.55em;font-weight:bold;margin:1.2em 0 .5em;',
@@ -219,7 +266,7 @@ final class WordpressSync
             'th' => 'border:1px solid #cbd5e1;padding:6px;font-weight:bold;',
             'a' => 'color:#2563eb;', 'hr' => 'border:0;border-top:1px solid #cbd5e1;margin:1em 0;',
         ];
-        $walk = function (\DOMNode $node) use (&$walk, $allowed, $dangerous, $styles): void {
+        $walk = function (\DOMNode $node) use (&$walk, $allowed, $dangerous, $styles, $moyuGreen): void {
             foreach (iterator_to_array($node->childNodes) as $child) {
                 if (!$child instanceof \DOMElement) continue;
                 $tag = strtolower($child->tagName);
@@ -231,7 +278,8 @@ final class WordpressSync
                     continue;
                 }
                 $class = $child->getAttribute('class');
-                $sourceStyle = $this->editorStyles($child->getAttribute('style'));
+                $sourceStyle = $this->editorStyles($child->getAttribute('style'), $moyuGreen);
+                $themeMarker = $tag === 'section' && $child->getAttribute('data-wwds-theme') === 'moyu-green';
                 $src = $tag === 'img' ? $child->getAttribute('src') : '';
                 $lazySrc = $tag === 'img' ? $child->getAttribute('data-src') : '';
                 $alt = $tag === 'img' ? $child->getAttribute('alt') : '';
@@ -239,6 +287,7 @@ final class WordpressSync
                 foreach (iterator_to_array($child->attributes) as $attr) {
                     $child->removeAttribute($attr->name);
                 }
+                if ($themeMarker) $child->setAttribute('data-wwds-theme', 'moyu-green');
                 if ($tag === 'img') {
                     foreach ([$src, $lazySrc] as $candidate) {
                         if ($candidate === '') continue;

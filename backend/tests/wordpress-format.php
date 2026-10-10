@@ -25,4 +25,11 @@ foreach (['%E4%B8%AD%E6%96%87', '%E5%BB%B6%E8%BF%9F', 'alt="流程图"', '图片
 foreach (['onerror', '<script', '<iframe', 'evil.example', 'position:fixed'] as $needle) {
     if (str_contains($out, $needle)) throw new RuntimeException("Unsafe markup survived: $needle");
 }
+$themed = $clean->invoke($sync, '<section data-wwds-theme="moyu-green" style="display:flex;background:#F0FDF4;position:fixed;background-image:url(https://evil.example/x)"><strong style="color:#059669">重点</strong><img src="https://52okp.com/image.jpg" onerror="alert(1)"></section>');
+foreach (['data-wwds-theme="moyu-green"', 'display:flex', 'background:#F0FDF4', 'color:#059669', 'https://52okp.com/image.jpg'] as $needle) {
+    if (!str_contains($themed, $needle)) throw new RuntimeException("Moyu Green style was removed: $needle");
+}
+foreach (['position:fixed', 'background-image', 'evil.example', 'onerror'] as $needle) {
+    if (str_contains($themed, $needle)) throw new RuntimeException("Unsafe themed style survived: $needle");
+}
 echo "WordPress format cleanup passed\n";
