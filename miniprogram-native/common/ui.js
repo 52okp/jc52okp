@@ -16,14 +16,23 @@ const QUICK_TYPES = [
   { test: /comfy/i, kind: 'comfy', glyph: 'C', hint: '工作流教程', rank: 5 }
 ];
 
-function decorateCategory(category, index) {
-  const match = QUICK_TYPES.find(type => type.test.test(category.name || ''));
-  const visual = match || { kind: 'other', glyph: (category.name || 'AI').slice(0, 1), hint: '探索更多', rank: 100 + index };
-  return { ...category, kind: visual.kind, glyph: visual.glyph, hint: visual.hint, rank: visual.rank };
+function categoryIconUrl(icon, origin) {
+  const value = String(icon || '').trim();
+  if (!value) return '';
+  if (/^https?:\/\//i.test(value)) return value.replace(/^http:/i, 'https:');
+  if (value.startsWith('//')) return 'https:' + value;
+  if (!origin || /^(data|javascript):/i.test(value)) return '';
+  return origin.replace(/\/$/, '') + '/' + value.replace(/^\.?\/+/, '');
 }
 
-function quickCategories(categories) {
-  const decorated = (categories || []).map(decorateCategory);
+function decorateCategory(category, index, iconOrigin) {
+  const match = QUICK_TYPES.find(type => type.test.test(category.name || ''));
+  const visual = match || { kind: 'other', glyph: (category.name || 'AI').slice(0, 1), hint: '探索更多', rank: 100 + index };
+  return { ...category, icon: categoryIconUrl(category.icon, iconOrigin), kind: visual.kind, glyph: visual.glyph, hint: visual.hint, rank: visual.rank };
+}
+
+function quickCategories(categories, iconOrigin) {
+  const decorated = (categories || []).map((category, index) => decorateCategory(category, index, iconOrigin));
   const selected = [];
   QUICK_TYPES.forEach(type => {
     const match = decorated.find(item => item.kind === type.kind && !selected.some(chosen => chosen.id === item.id));
@@ -35,4 +44,4 @@ function quickCategories(categories) {
   return selected.slice(0, 6);
 }
 
-module.exports = { topInset, decorateCategory, quickCategories };
+module.exports = { topInset, categoryIconUrl, decorateCategory, quickCategories };

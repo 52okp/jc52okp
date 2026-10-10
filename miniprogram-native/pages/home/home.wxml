@@ -18,7 +18,7 @@
     </view>
     <view class="quick-grid">
       <view wx:for="{{quickCategories}}" wx:key="id" class="quick-item" data-index="{{index}}" bindtap="openCategory">
-        <view class="quick-icon quick-{{item.kind}}"><image wx:if="{{item.icon}}" class="quick-icon-image" src="{{item.icon}}" mode="aspectFit"/><text wx:else>{{item.glyph}}</text></view>
+        <view class="quick-icon {{item.icon ? 'quick-uploaded' : 'quick-' + item.kind}}"><image wx:if="{{item.icon}}" class="quick-icon-image" src="{{item.icon}}" mode="aspectFit" data-index="{{index}}" binderror="iconError"/><text wx:else>{{item.glyph}}</text></view>
         <view class="quick-title">{{item.name}}</view>
         <view class="quick-hint">{{item.hint}}</view>
       </view>
