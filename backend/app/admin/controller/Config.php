@@ -147,10 +147,14 @@ class Config extends Controller
             }
             $this->fetch("storage-{$this->type}");
         } else {
-            $post = $this->request->post();
+            try {
+                $post = self::normalizeStoragePost($this->request->post());
+            } catch (\InvalidArgumentException $exception) {
+                $this->error($exception->getMessage());
+            }
             $img2Email = trim((string) ($post['img2_email'] ?? ''));
             $img2Password = (string) ($post['img2_password'] ?? '');
-            unset($post['img2_email'], $post['img2_password']);
+            unset($post['img2_email'], $post['img2_password'], $post['_token_']);
             $type = strtolower((string) ($post['storage.type'] ?? ''));
             if (!array_key_exists($type, Storage::types())) {
                 $this->error('不支持的存储引擎。');
@@ -200,5 +204,41 @@ class Config extends Controller
             sysoplog('系统配置管理', '修改系统存储参数');
             $this->success('修改文件存储成功！');
         }
+    }
+
+    /** ThinkAdmin's data-auto form sends dotted names as a nested storage array. */
+    private static function normalizeStoragePost(array $post): array
+    {
+        if (!array_key_exists('storage', $post)) {
+            return $post;
+        }
+        if (!is_array($post['storage'])) {
+            throw new \InvalidArgumentException('存储参数格式不正确。');
+        }
+        $storage = $post['storage'];
+        unset($post['storage']);
+        foreach ($storage as $key => $value) {
+            if (!is_string($key) || !preg_match('/^[a-z][a-z0-9_]*$/', $key) || !is_scalar($value)) {
+                throw new \InvalidArgumentException('存储参数格式不正确。');
+            }
+            $name = 'storage.' . $key;
+            if (array_key_exists($name, $post) && $post[$name] !== $value) {
+                throw new \InvalidArgumentException('存储参数存在冲突。');
+            }
+            $post[$name] = $value;
+        }
+        return $post;
+    }
+
+    /**
+     * Refresh the one-time form token after a failed save without closing the modal.
+     * @auth true
+     */
+    public function token()
+    {
+        if (!$this->request->isGet()) {
+            $this->error('只允许 GET 请求。');
+        }
+        $this->success('令牌已刷新', ['token' => systoken()]);
     }
 }
