@@ -9,7 +9,7 @@
     .tutorial-update-progress-bar[data-determinate="true"] { animation: none; transform: none; transition: width .2s ease; }
     @keyframes tutorial-update-moving { from { transform: translateX(0); } to { transform: translateX(195%); } }
 </style>
-<div class="layui-card" id="TutorialUpdatePanel">
+<div class="layui-card" id="TutorialUpdatePanel" data-check-url="{:url('check')}" data-status-url="{:url('status')}" data-install-url="{:url('install')}" data-install-token="{:systoken()}">
     <div class="layui-card-header">教程后端更新检查</div>
     <div class="layui-card-body">
         <p>当前版本：<span data-current-version>{$currentVersion}</span></p>
@@ -55,7 +55,7 @@
             installButton.prop('hidden', true);
             message.text('正在检查更新…');
             progress.prop('hidden', false);
-            $.ajax({url: "{:url('check')}", method: 'GET', dataType: 'json', cache: false, timeout: 135000})
+            $.ajax(panel.attr('data-check-url'), {method: 'GET', dataType: 'json', cache: false, timeout: 135000})
                 .done(function (response) {
                     if (!response || response.code !== 1 || !response.data) {
                         message.text((response && response.info) || '检查失败，请稍后重试。');
@@ -119,7 +119,7 @@
         function pollStatus() {
             if (polling || !panel.closest('body').length) return;
             polling = true;
-            $.ajax({url: "{:url('status')}", method: 'GET', dataType: 'json', cache: false})
+            $.ajax(panel.attr('data-status-url'), {method: 'GET', dataType: 'json', cache: false})
                 .done(function (response) {
                     if (response && response.code === 1 && response.data) {
                         showInstallStatus(response.data);
@@ -137,8 +137,8 @@
             installButton.prop('disabled', true);
             installProgress.prop('hidden', false);
             installMessage.text('正在启动后台安装任务…');
-            $.ajax({url: "{:url('install')}", method: 'POST', dataType: 'json',
-                data: {release_id: releaseId, _token_: '{:systoken()}'}})
+            $.ajax(panel.attr('data-install-url'), {method: 'POST', dataType: 'json',
+                data: {release_id: releaseId, _token_: panel.attr('data-install-token')}})
                 .done(function (response) {
                     if (response && response.code === 1) {
                         pollStatus();
