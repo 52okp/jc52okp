@@ -1,18 +1,162 @@
 {extend name="main"}
 
 {block name="content"}
-<div class="layui-card">
+<style>
+    .tutorial-update-progress { max-width: 520px; margin: 16px 0; }
+    .tutorial-update-progress-track { height: 8px; overflow: hidden; border-radius: 8px; background: #e7ecf5; }
+    .tutorial-update-progress-bar { width: 34%; height: 100%; border-radius: 8px; background: #3b73f6; animation: tutorial-update-moving 1.3s ease-in-out infinite alternate; }
+    .tutorial-update-progress[hidden], .tutorial-update-release[hidden], [data-install-button][hidden] { display: none; }
+    .tutorial-update-progress-bar[data-determinate="true"] { animation: none; transform: none; transition: width .2s ease; }
+    @keyframes tutorial-update-moving { from { transform: translateX(0); } to { transform: translateX(195%); } }
+</style>
+<div class="layui-card" id="TutorialUpdatePanel">
     <div class="layui-card-header">教程后端更新检查</div>
     <div class="layui-card-body">
-        <p>当前版本：{$currentVersion}</p>
-        {if $available}
-        <p>发现版本：{$releaseVersion}（起始版本 {$fromVersion}）</p>
-        <div class="layui-quote-nm">{$releaseNotes|raw}</div>
-        <p>安装功能尚未启用。完成隔离环境的备份、迁移、健康检查与恢复演练后才能开放安装。</p>
-        {else}
-        <p>{$checkMessage|raw}</p>
-        {/if}
-        <a class="layui-btn layui-btn-primary" href="{:url('index')}">重新检查</a>
+        <p>当前版本：<span data-current-version>{$currentVersion}</span></p>
+        <p data-check-message role="status" aria-live="polite">准备检查更新…</p>
+        <div class="tutorial-update-progress" data-check-progress role="progressbar" aria-label="检查更新中" aria-valuetext="正在检查" hidden>
+            <div class="tutorial-update-progress-track"><div class="tutorial-update-progress-bar"></div></div>
+            <div class="color-desc margin-top-5">正在连接更新中心并核对版本…</div>
+        </div>
+        <div class="tutorial-update-release" data-release hidden>
+            <p>发现版本：<span data-release-version></span>（起始版本 <span data-release-from></span>）</p>
+            <div class="layui-quote-nm" data-release-notes style="white-space:pre-wrap"></div>
+            <p class="color-desc">在线安装支持无数据库迁移的代码更新。包含新增或修改数据库迁移的发布包会在安装前停止，并提示人工备份及迁移。</p>
+        </div>
+        <button type="button" class="layui-btn layui-btn-primary" data-check-button>重新检查</button>
+        {if $canInstall}<button type="button" class="layui-btn" data-install-button hidden>安装此版本</button>{/if}
+        <div class="tutorial-update-progress" data-install-progress role="progressbar" aria-label="安装进度" hidden>
+            <div class="tutorial-update-progress-track"><div class="tutorial-update-progress-bar" data-install-bar></div></div>
+            <div class="color-desc margin-top-5" data-install-message aria-live="polite"></div>
+        </div>
     </div>
 </div>
+<script>
+    (function () {
+        var panel = $('#TutorialUpdatePanel');
+        var button = panel.find('[data-check-button]');
+        var message = panel.find('[data-check-message]');
+        var progress = panel.find('[data-check-progress]');
+        var release = panel.find('[data-release]');
+        var installButton = panel.find('[data-install-button]');
+        var installProgress = panel.find('[data-install-progress]');
+        var installBar = panel.find('[data-install-bar]');
+        var installMessage = panel.find('[data-install-message]');
+        var releaseId = '';
+        var installing = false;
+        var polling = false;
+        var pending = false;
+        function checkUpdate() {
+            if (pending || !panel.closest('body').length) return;
+            pending = true;
+            button.prop('disabled', true).text('检查中…');
+            release.prop('hidden', true);
+            releaseId = '';
+            installButton.prop('hidden', true);
+            message.text('正在检查更新…');
+            progress.prop('hidden', false);
+            $.ajax({url: "{:url('check')}", method: 'GET', dataType: 'json', cache: false, timeout: 135000})
+                .done(function (response) {
+                    if (!response || response.code !== 1 || !response.data) {
+                        message.text((response && response.info) || '检查失败，请稍后重试。');
+                        return;
+                    }
+                    var data = response.data;
+                    panel.find('[data-current-version]').text(data.current_version || '未配置');
+                    if (data.update_available && data.release) {
+                        panel.find('[data-release-version]').text(data.release.version || '');
+                        panel.find('[data-release-from]').text(data.release.from || '');
+                        panel.find('[data-release-notes]').text(data.release.notes || '暂无更新说明');
+                        releaseId = data.release.id || '';
+                        installButton.prop('hidden', !releaseId || installing);
+                        release.prop('hidden', false);
+                        message.text('发现可用更新。');
+                    } else {
+                        message.text(data.check_status === 'not_found'
+                            ? '更新中心返回 404：未找到可用发布，请核对项目 ID 与发布状态。'
+                            : '当前没有可用更新。');
+                    }
+                })
+                .fail(function (xhr, status) {
+                    message.text(status === 'timeout' ? '检查超时，请稍后重试。' : '检查请求失败，请确认后台登录状态后重试。');
+                })
+                .always(function () {
+                    pending = false;
+                    progress.prop('hidden', true);
+                    button.prop('disabled', false).text('重新检查');
+                });
+        }
+        function showInstallStatus(task) {
+            if (!task) return;
+            var active = task.state === 'queued' || task.state === 'running';
+            installing = active || task.state === 'recovery_required';
+            installButton.prop('disabled', installing).prop('hidden', installing || !releaseId);
+            installProgress.prop('hidden', false);
+            var done = Number(task.completed) || 0;
+            var total = Number(task.total) || 0;
+            if (total > 0 && active) {
+                var percent = Math.round(done / total * 100);
+                installBar.attr('data-determinate', 'true').css('width', percent + '%');
+                installProgress.attr('aria-valuenow', percent).attr('aria-valuemin', 0).attr('aria-valuemax', 100);
+            } else if (task.state === 'success') {
+                installBar.attr('data-determinate', 'true').css('width', '100%');
+                installProgress.attr('aria-valuenow', 100);
+            } else {
+                installBar.removeAttr('data-determinate').css('width', '34%');
+                installProgress.removeAttr('aria-valuenow');
+            }
+            var detail = (task.phase || '安装') + '：' + (task.message || '正在处理');
+            if (task.stale) detail += '。任务长时间没有更新，请在服务器检查执行器日志；必要时使用任务 ID ' + task.id + ' 执行恢复。';
+            installMessage.text(detail);
+            if (task.state === 'success') {
+                release.prop('hidden', true);
+                releaseId = '';
+                installButton.prop('hidden', true);
+                message.text('更新已安装。可重新检查版本。');
+                checkUpdate();
+            }
+        }
+        function pollStatus() {
+            if (polling || !panel.closest('body').length) return;
+            polling = true;
+            $.ajax({url: "{:url('status')}", method: 'GET', dataType: 'json', cache: false})
+                .done(function (response) {
+                    if (response && response.code === 1 && response.data) {
+                        showInstallStatus(response.data);
+                        if (response.data.state === 'queued' || response.data.state === 'running') {
+                            setTimeout(pollStatus, 1500);
+                        }
+                    }
+                })
+                .fail(function () { setTimeout(pollStatus, 5000); })
+                .always(function () { polling = false; });
+        }
+        installButton.on('click', function () {
+            if (!releaseId || installing || !window.confirm('确认安装此版本？安装前会备份被替换的程序文件；数据库迁移需单独备份和执行。')) return;
+            installing = true;
+            installButton.prop('disabled', true);
+            installProgress.prop('hidden', false);
+            installMessage.text('正在启动后台安装任务…');
+            $.ajax({url: "{:url('install')}", method: 'POST', dataType: 'json',
+                data: {release_id: releaseId, _token_: '{:systoken()}'}})
+                .done(function (response) {
+                    if (response && response.code === 1) {
+                        pollStatus();
+                    } else {
+                        installing = false;
+                        installButton.prop('disabled', false);
+                        installMessage.text((response && response.info) || '安装任务启动失败。');
+                    }
+                })
+                .fail(function () {
+                    installing = false;
+                    installButton.prop('disabled', false);
+                    installMessage.text('安装请求失败，请刷新页面核对任务状态。');
+                });
+        });
+        button.on('click', checkUpdate);
+        if (installButton.length) pollStatus();
+        checkUpdate();
+    }());
+</script>
 {/block}

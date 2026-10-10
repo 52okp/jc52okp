@@ -54,6 +54,7 @@ $addPath = function (string $relative) use ($root, $zip, &$included): void {
 try {
     foreach (['app', 'config', 'route', 'vendor', 'database/migrations', 'public/static',
         'public/index.php', 'public/router.php', 'public/robots.txt', 'think', 'composer.json', 'composer.lock',
+        'scripts/update-worker.php', 'scripts/update-health.php',
         'vendor/topthink/framework/src/think/cache/Driver.php',
         'vendor/topthink/framework/src/think/cache/TagSet.php',
         'vendor/topthink/framework/src/think/cache/driver/File.php',

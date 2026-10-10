@@ -64,7 +64,12 @@ abstract class Storage
         try {
             if (is_null($class)) {
                 $type = ucfirst(strtolower($name ?: sysconf('storage.type|raw')));
-                $class = "think\\admin\\storage\\{$type}Storage";
+                if ($type === 'Upyun') {
+                    $type = 'Local';
+                }
+                $class = $type === 'Img2'
+                    ? \app\admin\Img2Storage::class
+                    : "think\\admin\\storage\\{$type}Storage";
             }
             if (class_exists($class)) {
                 return Container::getInstance()->make($class);
@@ -148,7 +153,7 @@ abstract class Storage
             'local' => lang('本地服务器存储'),
             'alist' => lang('自建Alist存储'),
             'qiniu' => lang('七牛云对象存储'),
-            'upyun' => lang('又拍云USS存储'),
+            'img2' => lang('Yutu 图床 API'),
             'txcos' => lang('腾讯云COS存储'),
             'alioss' => lang('阿里云OSS存储'),
         ];

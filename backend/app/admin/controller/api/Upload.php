@@ -30,7 +30,6 @@ use think\admin\storage\AlistStorage;
 use think\admin\storage\LocalStorage;
 use think\admin\storage\QiniuStorage;
 use think\admin\storage\TxcosStorage;
-use think\admin\storage\UpyunStorage;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\DbException;
 use think\db\exception\ModelNotFoundException;
@@ -146,13 +145,10 @@ class Upload extends Controller
                 $data['q-signature'] = $token['q-signature'];
                 $data['q-sign-algorithm'] = $token['q-sign-algorithm'];
                 $data['server'] = $txcos->upload();
-            } elseif ($data['uptype'] === 'upyun') {
-                $upyun = UpyunStorage::instance();
-                $token = $upyun->token($data['key'], 3600, $name, input('hash', ''));
-                $data['url'] = $token['siteurl'];
-                $data['policy'] = $token['policy'];
-                $data['server'] = $upyun->upload();
-                $data['authorization'] = $token['authorization'];
+            } elseif ($data['uptype'] === 'img2') {
+                // 图床 Token 仅由后端使用，浏览器把图片发给本站上传入口。
+                $data['url'] = '';
+                $data['server'] = LocalStorage::instance()->upload();
             } elseif ($data['uptype'] === 'alist') {
                 $alist = AlistStorage::instance();
                 $data['url'] = $alist->url($data['key']);
@@ -226,7 +222,27 @@ class Upload extends Controller
         }
         try {
             $safeMode = $this->getSafe();
-            if (($type = $this->getType()) === 'local') {
+            if (($type = $this->getType()) === 'img2') {
+                if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'], true)) {
+                    $this->error('Yutu 图床只支持图片文件。');
+                }
+                $source = $file->getPathname();
+                if ($this->imgNotSafe($source) || !@getimagesize($source)) {
+                    $this->error('图片未通过安全检查或无法读取尺寸。');
+                }
+                $record = SystemFile::mk()->where([
+                    'id' => (int) input('id'), 'uuid' => $uuid, 'unid' => $unid,
+                    'hash' => (string) input('hash'), 'xkey' => $saveFileName,
+                    'type' => 'img2', 'status' => 1,
+                ])->findOrEmpty();
+                if ($record->isEmpty()) {
+                    $this->error('上传授权已失效，请重新选择图片。');
+                }
+                $info = Storage::instance('img2')->set($saveFileName, file_get_contents($source), false, $file->getOriginalName());
+                if (!$record->save(['xkey' => $info['key'], 'xurl' => $info['url']])) {
+                    $this->error('图床上传成功，但保存图片记录失败。');
+                }
+            } elseif ($type === 'local') {
                 $local = LocalStorage::instance();
                 $distName = $local->path($saveFileName, $safeMode);
                 if (PHP_SAPI === 'cli') {
@@ -277,10 +293,18 @@ class Upload extends Controller
     private function getType(): string
     {
         $type = strtolower(input('uptype', ''));
-        if (in_array($type, array_keys(Storage::types()))) {
-            return $type;
+        if (!array_key_exists($type, Storage::types())) {
+            $type = strtolower((string) sysconf('storage.type|raw'));
         }
-        return strtolower(sysconf('storage.type|raw'));
+        if (!array_key_exists($type, Storage::types())) {
+            return 'local';
+        }
+        // 私有文件和非图片文件仍保存在本站，避免公开图床泄露或拒收。
+        $extension = strtolower((string) (input('xext') ?: pathinfo((string) input('key', ''), PATHINFO_EXTENSION)));
+        if ($type === 'img2' && (sysconf('storage.type|raw') !== 'img2' || $this->getSafe() || !in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'], true))) {
+            return 'local';
+        }
+        return $type;
     }
 
     /**

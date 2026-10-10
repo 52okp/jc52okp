@@ -21,6 +21,7 @@ try {
     $zip->open($file, ZipArchive::CREATE | ZipArchive::OVERWRITE);
     $zip->addFromString('update-version.json', '{"product":"ai-tutorial-backend","version":"1.0.1"}');
     $zip->addFromString('app/api/controller/Safe.php', '<?php');
+    $zip->addFromString('scripts/update-worker.php', '<?php');
     $zip->close();
     $method->invoke($client, $file, '1.0.1');
     @unlink($file);

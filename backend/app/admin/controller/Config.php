@@ -57,6 +57,10 @@ class Config extends Controller
      */
     public function index()
     {
+        // 已移除的又拍云不再作为默认上传引擎；历史图片 URL 不受影响。
+        if (sysconf('storage.type|raw') === 'upyun') {
+            sysconf('storage.type', 'local');
+        }
         $this->title = '系统参数配置';
         $this->files = Storage::types();
         $this->plugins = Plugin::get(null, true);
@@ -129,6 +133,10 @@ class Config extends Controller
         $this->_applyFormToken();
         if ($this->request->isGet()) {
             $this->type = input('type', 'local');
+            if (!array_key_exists($this->type, Storage::types())) {
+                $this->error('不支持的存储引擎。');
+            }
+            $this->img2Configured = trim((string) sysconf('storage.img2_token|raw')) !== '';
             if ($this->type === 'alioss') {
                 $this->points = AliossStorage::region();
             } elseif ($this->type === 'qiniu') {
@@ -139,13 +147,38 @@ class Config extends Controller
             $this->fetch("storage-{$this->type}");
         } else {
             $post = $this->request->post();
-            if (!empty($post['storage']['allow_exts'])) {
+            $type = strtolower((string) ($post['storage.type'] ?? ''));
+            if (!array_key_exists($type, Storage::types())) {
+                $this->error('不支持的存储引擎。');
+            }
+            if ($type === 'img2') {
+                $token = trim((string) ($post['storage.img2_token'] ?? ''));
+                if ($token === '' && trim((string) sysconf('storage.img2_token|raw')) === '') {
+                    $this->error('请填写 Yutu 图床 API Token。');
+                }
+                if ($token === '') {
+                    unset($post['storage.img2_token']);
+                } elseif (preg_match('/[\r\n]/', $token)) {
+                    $this->error('Token 格式不正确。');
+                } else {
+                    $post['storage.img2_token'] = $token;
+                }
+                $strategy = trim((string) ($post['storage.img2_strategy_id'] ?? ''));
+                if ($strategy !== '' && (!ctype_digit($strategy) || (int) $strategy < 1)) {
+                    $this->error('存储策略 ID 必须是正整数。');
+                }
+                $post['storage.img2_strategy_id'] = $strategy;
+            }
+            if (isset($post['storage.allow_exts'])) {
                 $deny = ['sh', 'asp', 'bat', 'cmd', 'exe', 'php'];
-                $exts = array_unique(str2arr(strtolower($post['storage']['allow_exts'])));
+                $exts = array_unique(str2arr(strtolower((string) $post['storage.allow_exts'])));
                 if (count(array_intersect($deny, $exts)) > 0) {
                     $this->error('禁止上传可执行的文件！');
                 }
-                $post['storage']['allow_exts'] = join(',', $exts);
+                if ($type === 'img2') {
+                    $exts = array_unique(array_merge($exts, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']));
+                }
+                $post['storage.allow_exts'] = join(',', $exts);
             }
             foreach ($post as $name => $value) {
                 sysconf($name, $value);

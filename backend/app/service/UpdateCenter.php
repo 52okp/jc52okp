@@ -221,7 +221,7 @@ final class UpdateCenter
     {
         if (str_ends_with($name, '/')) return false;
         if (preg_match('~(^|/)(\.env|\.git|node_modules|runtime|uploads?|backup|sqlite\.db)(/|$)~i', $name)) return false;
-        if (in_array($name, ['update-version.json', 'public/index.php', 'public/router.php', 'public/robots.txt', 'think', 'composer.json', 'composer.lock'], true)) return true;
+        if (in_array($name, ['update-version.json', 'public/index.php', 'public/router.php', 'public/robots.txt', 'think', 'composer.json', 'composer.lock', 'scripts/update-worker.php', 'scripts/update-health.php'], true)) return true;
         foreach (['app/', 'config/', 'route/', 'vendor/', 'database/migrations/', 'public/static/'] as $prefix) {
             if (str_starts_with($name, $prefix)) return true;
         }

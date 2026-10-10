@@ -172,6 +172,10 @@ define(['md5', 'notify'], function (SparkMD5, Notify, allowMime) {
                     uploader.form.append('key', ret.data.key);
                     uploader.form.append('safe', ret.data.safe);
                     uploader.form.append('uptype', ret.data.uptype);
+                    if (ret.data.uptype === 'img2') {
+                        uploader.form.append('id', ret.data.id);
+                        uploader.form.append('hash', file.xmd5);
+                    }
                     if (ret.data.uptype === 'qiniu') {
                         uploader.form.append('token', ret.data.token);
                     } else if (ret.data.uptype === 'alist') {
@@ -193,17 +197,9 @@ define(['md5', 'notify'], function (SparkMD5, Notify, allowMime) {
                         uploader.form.append('q-sign-algorithm', ret.data['q-sign-algorithm']);
                         uploader.form.append('success_action_status', '200');
                         uploader.form.append('Content-Disposition', 'inline;filename=' + encodeURIComponent(file.name));
-                    } else if (ret.data.uptype === 'upyun') {
-                        uploader.form.delete('key');
-                        uploader.form.delete('safe');
-                        uploader.form.delete('uptype');
-                        uploader.form.append('save-key', ret.data['key']);
-                        uploader.form.append('policy', ret.data['policy']);
-                        uploader.form.append('authorization', ret.data['authorization']);
-                        uploader.form.append('Content-Disposition', 'inline;filename=' + encodeURIComponent(file.name));
                     }
                     uploader.form.append('file', file, file.name), jQuery.ajax({
-                        xhrFields: {withCredentials: ret.data.uptype === 'local'}, headers: uploader.head, url: uploader.url, data: uploader.form, type: uploader.type || 'post', xhr: function (xhr) {
+                        xhrFields: {withCredentials: ret.data.uptype === 'local' || ret.data.uptype === 'img2'}, headers: uploader.head, url: uploader.url, data: uploader.form, type: uploader.type || 'post', xhr: function (xhr) {
                             xhr = new XMLHttpRequest();
                             return xhr.upload.addEventListener('progress', function (event) {
                                 file.xtotal = event.total, file.xloaded = event.loaded || 0;
@@ -221,9 +217,14 @@ define(['md5', 'notify'], function (SparkMD5, Notify, allowMime) {
                             if (typeof ret !== 'object') {
                                 ret = {code: 1, url: file.xurl, info: '{:lang("文件上传成功！")}'};
                             }
+                            if (uploader.uptype === 'img2' && ret && ret.data && typeof ret.data.url === 'string') {
+                                file.xurl = ret.data.url;
+                            }
                             /*! 检查单个文件上传返回的结果 */
                             if (typeof ret === 'object' && ret.code < 1) {
                                 that.event('upload.error', {file: file}, file, ret.info || '{:lang("文件上传失败！")}');
+                            } else if (uploader.uptype === 'img2' && !/^https:\/\//.test(file.xurl || '')) {
+                                that.event('upload.error', {file: file}, file, '图床未返回有效的图片地址。');
                             } else if (uploader.uptype === 'alist' && parseInt(ret.code) !== 200) {
                                 that.event('upload.error', {file: file}, file, ret.message || '{:lang("文件上传失败！")}');
                             } else {

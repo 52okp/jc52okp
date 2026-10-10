@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace app\admin\controller;
 
 use app\service\UpdateCenter;
+use app\service\UpdateInstall;
 use think\admin\Controller;
+use think\admin\service\AdminService;
 
-/** Server-side, read-only update check. Installation is disabled until a verified deployment layout exists. */
+/** Server-side update check and background installation. */
 class Update extends Controller
 {
     /**
@@ -19,27 +21,65 @@ class Update extends Controller
     {
         $this->title = '教程后端更新';
         $this->currentVersion = (string)(getenv('APP_VERSION') ?: env('APP_VERSION', '未配置'));
-        $this->available = false;
-        $this->releaseVersion = '';
-        $this->fromVersion = '';
-        $this->releaseNotes = '';
-        $this->checkMessage = '';
+        $this->canInstall = AdminService::isSuper();
+        $this->fetch();
+    }
+
+    /**
+     * 在当前后台页面异步检查更新，不暴露项目令牌。
+     * @auth true
+     */
+    public function check()
+    {
         try {
             $result = (new UpdateCenter())->check();
-            $this->available = $result['update_available'];
-            if ($this->available) {
-                $release = $result['release'];
-                $this->releaseVersion = (string)$release['version'];
-                $this->fromVersion = (string)$release['from'];
-                $this->releaseNotes = nl2br(htmlspecialchars((string)($release['notes'] ?? ''), ENT_QUOTES, 'UTF-8'));
-            } else {
-                $this->checkMessage = ($result['check_status'] ?? '') === 'not_found'
-                    ? '更新中心返回 404：未找到可用发布，请核对项目 ID 与发布状态。'
-                    : '当前没有可用更新';
-            }
+            $release = $result['update_available'] ? $result['release'] : null;
+            $data = [
+                'current_version' => (string)$result['current_version'],
+                'update_available' => (bool)$result['update_available'],
+                'check_status' => (string)$result['check_status'],
+                'release' => $release ? [
+                    'id' => (string)$release['id'],
+                    'version' => (string)$release['version'],
+                    'from' => (string)$release['from'],
+                    'notes' => (string)($release['notes'] ?? ''),
+                ] : null,
+            ];
         } catch (\Throwable $e) {
-            $this->checkMessage = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+            $this->error($e->getMessage());
         }
-        $this->fetch();
+        $this->success('检查完成', $data);
+    }
+
+    /**
+     * 创建后台安装任务。
+     * @auth true
+     */
+    public function install()
+    {
+        if (!$this->request->isPost()) $this->error('只允许 POST 安装请求');
+        $this->_applyFormToken();
+        if (!AdminService::isSuper()) $this->error('仅超级管理员可以安装更新');
+        try {
+            $data = (new UpdateInstall())->start((string)$this->request->post('release_id', ''));
+        } catch (\Throwable $e) {
+            $this->error($e->getMessage());
+        }
+        $this->success('安装任务已启动', $data);
+    }
+
+    /**
+     * 查询当前安装任务的真实状态。
+     * @auth true
+     */
+    public function status()
+    {
+        if (!AdminService::isSuper()) $this->error('仅超级管理员可以查看安装任务');
+        try {
+            $data = (new UpdateInstall())->status();
+        } catch (\Throwable $e) {
+            $this->error($e->getMessage());
+        }
+        $this->success('任务状态', $data);
     }
 }

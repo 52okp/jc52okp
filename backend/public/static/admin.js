@@ -527,6 +527,93 @@ $(function () {
         });
     };
 
+    /*! 图片选择器由客户端构建，避免模板请求返回空内容时出现空白弹窗 */
+    $.openImagePicker = function (source) {
+        let $source = $(source), input = $source.data('input');
+        let multiple = source.dataset.file === 'images', page = 1, limit = 15;
+        let selected = {}, layerId, request, loading = false;
+        let $dialog = $('<div class="image-dialog"></div>');
+        let $head = $('<div class="image-dialog-head"></div>').appendTo($dialog);
+        let $search = $('<input class="layui-input" placeholder="搜索图片名称">').css({width: '230px', height: '30px', display: 'inline-block', marginRight: '6px'}).appendTo($head);
+        let $searchButton = $('<button type="button" class="layui-btn layui-btn-sm layui-btn-normal">搜索</button>').appendTo($head);
+        let $upload = $('<button type="button" data-file="one" class="layui-btn layui-btn-sm layui-btn-normal pull-right">上传图片</button>').appendTo($head);
+        let $body = $('<div class="image-dialog-body"></div>').appendTo($dialog);
+        let $foot = $('<div class="image-dialog-foot"></div>').appendTo($dialog);
+        let $pages = $('<div class="image-dialog-page"></div>').appendTo($foot);
+        let $confirm = $('<button type="button" class="image-dialog-button layui-btn layui-btn-normal layui-hide"></button>').appendTo($foot);
+        $body.css({overflowY: 'auto'});
+        $head.css({height: '50px'});
+        copyUploadAttrs($source, $upload, {
+            'path': '', 'size': 0, 'type': 'gif,png,jpg,jpeg', 'max-width': 0, 'max-height': 0,
+            'cut-width': 0, 'cut-height': 0, 'uptype': '', 'safe': 0, 'hload': 0, 'quality': '1.0'
+        });
+        function setValue(url) {
+            if (!url) return;
+            if (multiple) {
+                // 多图组件监听 push 来维护缩略图和隐藏字段。
+                $source.triggerHandler('push', url);
+            } else {
+                if (input) $(input).val(url).trigger('change');
+                $source.triggerHandler('push', url);
+            }
+        }
+        $upload.on('push', function (event, url) {
+            setValue(url);
+        }).on('upload.complete', function () {
+            layer.close(layerId);
+        });
+        function showMessage(message) {
+            $body.empty().append($('<div class="color-desc text-center"></div>').css({width: '100%', paddingTop: '35px'}).text(message));
+        }
+        function loadPage() {
+            if (loading && request) request.abort();
+            loading = true;
+            showMessage('正在加载图片…');
+            request = $.ajax({
+                url: $.menu.parseUri(tapiRoot + '/api.upload/image'), dataType: 'json', cache: false,
+                data: {page: page, limit: limit, output: 'layui.table', type: source.dataset.type || 'gif,png,jpg,jpeg', name: $search.val().trim()},
+                success: function (result) {
+                    if (!result || !Array.isArray(result.data)) return showMessage((result && result.info) || '图片列表返回的数据无效，请检查上传接口。');
+                    $body.empty();
+                    if (!result.data.length) showMessage('暂无图片，可点击右上角“上传图片”。');
+                    result.data.forEach(function (file) {
+                        if (!file.xurl) return;
+                        let $item = $('<div class="image-dialog-item"></div>').css({cursor: 'pointer'}).appendTo($body);
+                        $('<div class="uploadimage"></div>').css('background-image', 'url("' + encodeURI(file.xurl).replace(/"/g, '%22') + '")').appendTo($item);
+                        $('<p class="image-dialog-item-name layui-elip"></p>').text(file.name || '').appendTo($item);
+                        if (selected[file.id]) $item.addClass('image-dialog-checked');
+                        $item.on('click', function () {
+                            if (!multiple) {
+                                setValue(file.xurl);
+                                layer.close(layerId);
+                            } else {
+                                if (selected[file.id]) delete selected[file.id]; else selected[file.id] = file.xurl;
+                                $item.toggleClass('image-dialog-checked', !!selected[file.id]);
+                                let count = Object.keys(selected).length;
+                                $confirm.toggleClass('layui-hide', !count).text('已选 ' + count + ' 张，确认');
+                            }
+                        });
+                    });
+                    layui.laypage.render({
+                        elem: $pages.get(0), curr: page, count: Number(result.count) || 0, limit: limit,
+                        layout: ['count', 'prev', 'page', 'next'],
+                        jump: function (obj, first) { if (!first) { page = obj.curr; loadPage(); } }
+                    });
+                },
+                error: function (xhr, status) {
+                    if (status !== 'abort') showMessage((status === 'parsererror' ? '图片接口返回的格式错误' : '图片加载失败') + '（HTTP ' + xhr.status + '），可点击右上角上传图片。');
+                },
+                complete: function () { loading = false; }
+            });
+        }
+        $searchButton.on('click', function () { page = 1; loadPage(); });
+        $search.on('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); page = 1; loadPage(); } });
+        $confirm.on('click', function () { Object.keys(selected).forEach(function (id) { setValue(selected[id]); }); layer.close(layerId); });
+        layerId = layer.open({type: 1, title: '图片选择器', area: '800px', resize: false, content: $dialog,
+            success: loadPage, end: function () { if (request && loading) request.abort(); }});
+        $.msg.mdx.push(layerId);
+    };
+
     /*! 上传单个视频 */
     $.fn.uploadOneVideo = function () {
         return this.each(function () {
@@ -866,7 +953,7 @@ $(function () {
         }
         // 单图或多图选择器 ( image|images )
         if (typeof this.dataset.file === 'string' && /^images?$/.test(this.dataset.file)) {
-            return $.form.modal(tapiRoot + '/api.upload/image', this.dataset, '图片选择器')
+            return $.openImagePicker(this);
         }
         // 其他文件上传处理
         this.dataset.inited || $(this).uploadFile(undefined, function () {

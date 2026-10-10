@@ -18,7 +18,7 @@ $root = dirname(__DIR__);
 $inputs = [
     'app', 'config', 'route', 'vendor', 'database/migrations', 'public/static',
     'public/index.php', 'public/router.php', 'public/robots.txt', 'public/.htaccess', 'public/install.php',
-    'think', 'composer.json', 'composer.lock',
+    'think', 'composer.json', 'composer.lock', 'scripts/update-worker.php', 'scripts/update-health.php',
     // The broad cache exclusion below also matches ThinkPHP's required source files.
     'vendor/topthink/framework/src/think/cache/Driver.php',
     'vendor/topthink/framework/src/think/cache/TagSet.php',

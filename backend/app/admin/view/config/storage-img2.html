@@ -1,0 +1,37 @@
+<form action="{:sysuri()}" method="post" data-auto="true" class="layui-form layui-card">
+    <div class="layui-card-body padding-top-20">
+        <div class="color-text layui-code text-center layui-bg-gray" style="border-left-width:1px;margin:0 0 15px 40px">
+            <p class="margin-bottom-5 font-w7">图片由本站服务器上传到 <a target="_blank" rel="noopener noreferrer" href="https://img2.mm-8.cn/api">Yutu 图床 API</a>，支持 jpg、png、gif、webp、bmp。</p>
+            <p>Token 保存在后台配置中，仅由服务器调用 API；私有文件和非图片文件继续存到本地。</p>
+        </div>
+
+        {include file='config/storage-0'}
+
+        <div class="layui-form-item">
+            <label class="layui-form-label label-required" for="storage.img2_token">
+                <b class="color-green">API Token</b><br><span class="nowrap color-desc">Bearer</span>
+            </label>
+            <div class="layui-input-block">
+                <input id="storage.img2_token" type="password" name="storage.img2_token" value="" autocomplete="new-password" placeholder="{if $img2Configured}已配置，留空保持不变{else}请输入图床账户生成的 Token{/if}" class="layui-input">
+                <p class="help-block">从图床账户获取 Token。可直接填 Token，不需要填写 Bearer 前缀；页面不会回显已保存的 Token。</p>
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label" for="storage.img2_strategy_id">
+                <b class="color-green">存储策略 ID</b><br><span class="nowrap color-desc">Strategy</span>
+            </label>
+            <div class="layui-input-block">
+                <input id="storage.img2_strategy_id" type="number" min="1" name="storage.img2_strategy_id" value="{:sysconf('storage.img2_strategy_id')}" placeholder="可选，留空使用图床默认策略" class="layui-input">
+                <p class="help-block">仅当图床账户需要指定存储策略时填写。</p>
+            </div>
+        </div>
+
+        <div class="hr-line-dashed margin-left-40"></div>
+        <input type="hidden" name="storage.type" value="img2">
+        <div class="layui-form-item text-center padding-left-40">
+            <button class="layui-btn" type="submit">保存配置</button>
+            <button class="layui-btn layui-btn-danger" type="button" data-confirm="确定要取消修改吗？" data-close>取消修改</button>
+        </div>
+    </div>
+</form>
