@@ -31,6 +31,16 @@
 
         </fieldset>
 
+        {if empty($vo.id)}
+        <fieldset class="layui-bg-gray">
+            <legend><b class="layui-badge think-bg-violet">初始登录密码</b></legend>
+            <label class="layui-form-item block">
+                <input type="password" name="password" minlength="12" maxlength="72" required autocomplete="new-password" class="layui-input" placeholder="为新用户设置至少 12 位的密码">
+                <span class="color-desc">请通过安全渠道告知新用户，创建后可在后台自行修改。</span>
+            </label>
+        </fieldset>
+        {/if}
+
         {if !empty($bases) || !empty($auths)}
         <fieldset class="layui-bg-gray">
             <legend><b class="layui-badge think-bg-violet">{:lang('用户权限')}</b></legend>

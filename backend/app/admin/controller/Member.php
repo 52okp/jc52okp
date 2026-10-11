@@ -24,6 +24,7 @@ class Member extends Controller
         MemberModel::mQuery()->layTable(function () {
             $this->title = '会员列表';
         }, function (QueryHelper $query) {
+            $query->field('id,avatar,nickname,status,login_at,create_at');
             $query->like('nickname,openid')->equal('status')->dateBetween('create_at');
         });
     }

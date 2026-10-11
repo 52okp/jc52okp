@@ -65,11 +65,11 @@ class CaptchaService extends Service
             }
         }
         // 生成验证码序号
-        $this->uniqid = uniqid('captcha') . mt_rand(1000, 9999);
+        $this->uniqid = 'captcha' . bin2hex(random_bytes(16));
         // 生成验证码字符串
         [$this->code, $length] = ['', strlen($this->charset) - 1];
         for ($i = 0; $i < $this->length; ++$i) {
-            $this->code .= $this->charset[mt_rand(0, $length)];
+            $this->code .= $this->charset[random_int(0, $length)];
         }
         // 缓存验证码字符串
         $this->app->cache->set($this->uniqid, $this->code, 360);

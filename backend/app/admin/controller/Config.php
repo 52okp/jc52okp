@@ -28,6 +28,7 @@ use think\admin\service\ModuleService;
 use think\admin\service\RuntimeService;
 use think\admin\service\SystemService;
 use think\admin\Storage;
+use think\admin\model\SystemUser;
 use think\admin\storage\AliossStorage;
 use think\admin\storage\QiniuStorage;
 use think\admin\storage\TxcosStorage;
@@ -69,7 +70,7 @@ class Config extends Controller
         $this->systemid = ModuleService::getRunVar('uni');
         $this->framework = ModuleService::getLibrarys('topthink/framework');
         $this->thinkadmin = ModuleService::getLibrarys('zoujingli/think-library');
-        if (AdminService::isSuper() && $this->app->session->get('user.password') === md5('admin')) {
+        if (AdminService::isSuper() && SystemUser::mk()->where('id', AdminService::getUserId())->value('password') === md5('admin')) {
             $url = url('admin/index/pass', ['id' => AdminService::getUserId()]);
             $this->showErrorMessage = lang("超级管理员账号的密码未修改，建议立即<a data-modal='%s'>修改密码</a>！", [$url]);
         }

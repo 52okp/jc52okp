@@ -7,6 +7,7 @@ namespace app\api\controller;
 use app\model\Member as MemberModel;
 use app\model\MemberFavorite;
 use app\model\MemberHistory;
+use app\service\MemberToken;
 use think\admin\extend\HttpExtend;
 use think\admin\Storage;
 use think\Response;
@@ -39,16 +40,16 @@ class Member extends Base
 
         $openid  = $res['openid'];
         $unionid = $res['unionid'] ?? '';
-        $token   = md5($openid . microtime(true) . mt_rand());
+        $token   = MemberToken::issue();
         $now     = date('Y-m-d H:i:s');
 
         $member = MemberModel::mk()->where('openid', $openid)->findOrEmpty();
         if ($member->isExists()) {
-            $member->save(['token' => $token, 'login_at' => $now, 'unionid' => $unionid ?: $member->unionid]);
+            $member->save(['token' => MemberToken::digest($token), 'login_at' => $now, 'unionid' => $unionid ?: $member->unionid]);
         } else {
             $member = MemberModel::mk();
             $member->save([
-                'openid' => $openid, 'unionid' => $unionid, 'token' => $token,
+                'openid' => $openid, 'unionid' => $unionid, 'token' => MemberToken::digest($token),
                 'nickname' => '', 'avatar' => '', 'status' => 1, 'login_at' => $now,
             ]);
         }

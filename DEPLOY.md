@@ -25,6 +25,12 @@ php backend/scripts/build-update.php --project=jc52okp --version=1.0.8 --from=1.
 
 站点点击“安装此版本”后，由服务器后台任务下载、校验、备份、替换并做健康检查。服务器 `.env`、数据库、上传目录和运行数据不参与替换。若任务中断，查看 `runtime/update-jobs/<任务 ID>/status.json` 与 `worker.log`；确认执行器已停后，再按实际任务状态使用 `scripts/update-worker.php recover <任务 ID>`，不要在任务运行时手动恢复。
 
+### 管理员认证安全迁移
+
+认证修复包含 `database/migrations/20261011120000_harden_authentication.php`，将 `system_user.password` 扩至 255 位并给会员令牌建立单列索引。现有在线更新器会拒绝新的数据库迁移，因此这次须在备份数据库后人工发布：先把新迁移文件放到站点相应目录，在宝塔终端用站点 PHP CLI 于后端根目录执行 `/www/server/php/84/bin/php think migrate:run`，确认迁移成功后，再替换同批代码文件。不要先替换登录控制器，否则旧的 32 位密码字段无法保存新哈希。
+
+新版管理员登录直接通过 HTTPS 提交密码，由服务端验证旧 MD5，成功后升级为自带盐的哈希。若 EdgeOne 使用 HTTP 回源，EdgeOne 到源站之间仍可能传输明文密码；上线这批认证改动前应启用加密回源或等效的受保护通道。原有小程序会员令牌会失效，小程序下一次调用会员接口时会自动重新登录；新版令牌有效期 30 天，仅通过 `Member-Token` 请求头传递，数据库只保存摘要。部署后核对后台登录、改密、会员重新登录，以及验证码响应中不再有 `code` 字段。
+
 ## WordPress 插件
 
 插件源码在 `wp-wechat-draft-sync/`。将该目录按 WordPress 插件目录结构打包后，在 WordPress 后台安装或替换；不要把插件 ZIP 混入教程后端更新包。插件的公众号草稿配置与“教程同步”配置相互独立。教程同步填写后端 HTTPS 地址、稳定站点标识、独立签名密钥和要同步的分类；密钥与后端服务器配置保持一致，不要写进 Git。

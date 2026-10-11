@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\service\AdminPassword;
 use think\admin\Controller;
 use think\admin\Exception;
 use think\admin\extend\CodeExtend;
@@ -61,10 +62,6 @@ class Login extends Controller
                     ];
                 }
                 $this->loginStyle = sprintf('style="background-image:url(%s)" data-bg-transition="%s"', $images[0], join(',', $images));
-                // 更新后台主域名，用于部分无法获取域名的场景调用
-                if ($this->request->domain() !== sysconf('base.site_host|raw')) {
-                    sysconf('base.site_host', $this->request->domain());
-                }
                 $this->fetch();
             }
         } else {
@@ -76,27 +73,38 @@ class Login extends Controller
                 'verify.require' => '图形验证码不能为空!',
                 'uniqid.require' => '图形验证标识不能为空!',
             ]);
+            $attemptKey = 'admin-login-attempts-' . hash('sha256', strtolower((string)$data['username']) . '|' . $this->request->ip());
+            $attempts = (int)$this->app->cache->get($attemptKey, 0);
+            if ($attempts >= 5) {
+                $this->error('尝试次数过多，请十分钟后再试！');
+            }
             if (!CaptchaService::instance()->check($data['verify'], $data['uniqid'])) {
+                $this->app->cache->set($attemptKey, $attempts + 1, 600);
                 $this->error('图形验证码验证失败，请重新输入!');
             }
             /* ! 用户信息验证 */
             $map = ['username' => $data['username'], 'is_deleted' => 0];
             $user = SystemUser::mk()->where($map)->findOrEmpty();
             if ($user->isEmpty()) {
-                $this->app->session->set('LoginInputSessionError', true);
+                $this->app->cache->set($attemptKey, $attempts + 1, 600);
                 $this->error('登录账号或密码错误，请重新输入!');
             }
             if (empty($user['status'])) {
-                $this->app->session->set('LoginInputSessionError', true);
-                $this->error('账号已经被禁用，请联系管理员!');
-            }
-            if (md5("{$user['password']}{$data['uniqid']}") !== $data['password']) {
-                $this->app->session->set('LoginInputSessionError', true);
+                $this->app->cache->set($attemptKey, $attempts + 1, 600);
                 $this->error('登录账号或密码错误，请重新输入!');
             }
+            if (!AdminPassword::verify((string)$data['password'], (string)$user['password'])) {
+                $this->app->cache->set($attemptKey, $attempts + 1, 600);
+                $this->error('登录账号或密码错误，请重新输入!');
+            }
+            if (AdminPassword::shouldUpgrade((string)$user['password'])) {
+                if (!$user->save(['password' => AdminPassword::make((string)$data['password'])])) {
+                    $this->error('密码升级失败，请联系管理员检查数据库迁移！');
+                }
+            }
+            $this->app->cache->delete($attemptKey);
             $user->hidden(['sort', 'status', 'password', 'is_deleted']);
             $this->app->session->set('user', $user->toArray());
-            $this->app->session->delete('LoginInputSessionError');
             // 更新登录次数
             $user->where(['id' => $user->getAttr('id')])->inc('login_num')->update([
                 'login_at' => date('Y-m-d H:i:s'), 'login_ip' => $this->app->request->ip(),
@@ -119,10 +127,6 @@ class Login extends Controller
         ]);
         $image = CaptchaService::instance()->initialize();
         $captcha = ['image' => $image->getData(), 'uniqid' => $image->getUniqid()];
-        // 未发生异常时，直接返回验证码内容
-        if (!$this->app->session->get('LoginInputSessionError')) {
-            $captcha['code'] = $image->getCode();
-        }
         $this->success('生成验证码成功', $captcha);
     }
 

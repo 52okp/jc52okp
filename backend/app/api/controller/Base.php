@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\api\controller;
 
 use app\model\Member;
+use app\service\MemberToken;
 use think\Response;
 
 /**
@@ -31,15 +32,15 @@ class Base
     }
 
     /**
-     * 解析当前登录会员（token 来自请求头 Member-Token 或参数 token）
+     * 解析当前登录会员（仅从 Member-Token 请求头读取）
      * @return Member|null
      */
     protected function getMember()
     {
         $req = request();
-        $token = $req->header('Member-Token') ?: (string)$req->param('token', '');
-        if ($token === '') return null;
-        $m = Member::mk()->where(['token' => $token, 'status' => 1])->findOrEmpty();
+        $token = (string)$req->header('Member-Token', '');
+        if (!MemberToken::isCurrent($token)) return null;
+        $m = Member::mk()->where(['token' => MemberToken::digest($token), 'status' => 1])->findOrEmpty();
         return $m->isExists() ? $m : null;
     }
 }

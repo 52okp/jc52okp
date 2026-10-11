@@ -291,7 +291,7 @@ if ($step === 'install' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if (articleFingerprint($pdo) !== $fingerprint) throw new RuntimeException('迁移后旧文章正文或状态发生变化。');
         $versions = array_map('strval', $pdo->query('SELECT version FROM migrations WHERE version >= 20261009120000 ORDER BY version')->fetchAll(PDO::FETCH_COLUMN));
-        if ($versions !== ['20261009120000', '20261009130000', '20261009140000']) {
+        if ($versions !== ['20261009120000', '20261009130000', '20261009140000', '20261011120000']) {
             throw new RuntimeException('新增迁移记录不完整。');
         }
         if (@file_put_contents(LOCK_FILE, 'installed') === false) throw new RuntimeException('无法完成安装锁。');

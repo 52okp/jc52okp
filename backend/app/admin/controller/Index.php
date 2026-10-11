@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\service\AdminPassword;
 use think\admin\Controller;
 use think\admin\Exception;
 use think\admin\model\SystemUser;
@@ -123,10 +124,13 @@ class Index extends Controller
             if (empty($user)) {
                 $this->error('用户不存在！');
             }
-            if (md5($data['oldpassword']) !== $user['password']) {
+            if (!AdminPassword::verify((string)$data['oldpassword'], (string)$user['password'])) {
                 $this->error('旧密码验证失败，请重新输入！');
             }
-            if ($user->save(['password' => md5($data['password'])])) {
+            if (!AdminPassword::validateNew((string)$data['password'])) {
+                $this->error('新密码长度须为 12 至 72 字节！');
+            }
+            if ($user->save(['password' => AdminPassword::make((string)$data['password'])])) {
                 sysoplog('系统用户管理', "修改用户[{$user['id']}]密码成功");
                 // 修改密码同步事件处理
                 $this->app->event->trigger('PluginAdminChangePassword', [

@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\service\AdminPassword;
 use think\admin\Controller;
 use think\admin\helper\QueryHelper;
 use think\admin\model\SystemAuth;
@@ -51,6 +52,7 @@ class User extends Controller
             $this->title = '系统用户管理';
             $this->bases = SystemBase::items('身份权限');
         }, function (QueryHelper $query) {
+            $query->field('id,sort,headimg,username,nickname,usertype,status,login_num,login_at,create_at');
             // 加载对应数据列表
             $query->where(['is_deleted' => 0, 'status' => intval($this->type === 'index')]);
 
@@ -102,7 +104,10 @@ class User extends Controller
                 'repassword.confirm:password' => '两次输入的密码不一致！',
             ]);
             $user = SystemUser::mk()->findOrEmpty($data['id']);
-            if ($user->isExists() && $user->save(['password' => md5($data['password'])])) {
+            if (!AdminPassword::validateNew((string)$data['password'])) {
+                $this->error('密码长度须为 12 至 72 字节！');
+            }
+            if ($user->isExists() && $user->save(['password' => AdminPassword::make((string)$data['password'])])) {
                 // 修改密码同步事件处理
                 $this->app->event->trigger('PluginAdminChangePassword', [
                     'uuid' => $data['id'], 'pass' => $data['password'],
@@ -160,10 +165,12 @@ class User extends Controller
                 if (SystemUser::mk()->where($map)->count() > 0) {
                     $this->error('账号已经存在，请使用其它账号！');
                 }
-                // 新添加的用户密码与账号相同
-                $data['password'] = md5($data['username']);
+                if (empty($data['password']) || !AdminPassword::validateNew((string)$data['password'])) {
+                    $this->error('新增用户须设置 12 至 72 字节的密码！');
+                }
+                $data['password'] = AdminPassword::make((string)$data['password']);
             } else {
-                unset($data['username']);
+                unset($data['username'], $data['password']);
             }
         } else {
             // 权限绑定处理
