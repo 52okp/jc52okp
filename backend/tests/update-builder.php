@@ -58,14 +58,14 @@ try {
     $old = '<?php // previous release fixture';
     $zip = new ZipArchive();
     $assert($zip->open($baselineDir . '/' . $packageName) === true, 'Cannot open baseline');
-    $meta = json_decode((string)$zip->getFromName('update-version.json'), true, 512, JSON_THROW_ON_ERROR);
-    $meta['files'][$name] = hash('sha256', $old);
     $zip->deleteName($name);
     $zip->addFromString($name, $old);
-    $zip->deleteName('update-version.json');
-    $zip->addFromString('update-version.json', json_encode($meta, JSON_THROW_ON_ERROR));
     $assert($zip->close(), 'Cannot close baseline');
     $writeManifest($baselineDir);
+    $manifestPath = $baselineDir . '/update-manifest.json';
+    $manifest = json_decode((string)file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+    $manifest['files'][$name] = hash('sha256', $old);
+    file_put_contents($manifestPath, json_encode($manifest, JSON_THROW_ON_ERROR));
 
     [$code, $message] = $run([
         '--project=jc52okp', '--version=1.0.8', '--from=1.0.7',
@@ -81,8 +81,9 @@ try {
     sort($names);
     $assert($names === [$name, 'update-version.json'], 'Delta contains unchanged files');
     $meta = json_decode((string)$zip->getFromName('update-version.json'), true, 512, JSON_THROW_ON_ERROR);
-    $assert(($meta['kind'] ?? null) === 'delta' && ($meta['files'][$name] ?? null) ===
-        hash_file('sha256', $backend . '/' . $name), 'Delta inventory is wrong');
+    $manifest = json_decode((string)file_get_contents($deltaDir . '/update-manifest.json'), true, 512, JSON_THROW_ON_ERROR);
+    $assert(($meta['kind'] ?? null) === 'delta' && strlen((string)$zip->getFromName('update-version.json')) <= 4096 &&
+        ($manifest['files'][$name] ?? null) === hash_file('sha256', $backend . '/' . $name), 'Delta inventory is wrong');
     $zip->close();
 
     [$code, $message] = $run([
@@ -104,14 +105,10 @@ try {
     $assert($code !== 0 && str_contains($message, 'Baseline manifest does not match'),
         'Mismatched base version was accepted');
 
-    $zip = new ZipArchive();
-    $assert($zip->open($deltaDir . '/' . $packageName) === true, 'Cannot reopen delta');
-    $meta = json_decode((string)$zip->getFromName('update-version.json'), true, 512, JSON_THROW_ON_ERROR);
-    $meta['files']['app/retired.php'] = hash('sha256', 'old file');
-    $zip->deleteName('update-version.json');
-    $zip->addFromString('update-version.json', json_encode($meta, JSON_THROW_ON_ERROR));
-    $assert($zip->close(), 'Cannot close modified delta');
-    $writeManifest($deltaDir);
+    $manifestPath = $deltaDir . '/update-manifest.json';
+    $manifest = json_decode((string)file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+    $manifest['files']['app/retired.php'] = hash('sha256', 'old file');
+    file_put_contents($manifestPath, json_encode($manifest, JSON_THROW_ON_ERROR));
     [$code, $message] = $run([
         '--project=jc52okp', '--version=1.0.9', '--from=1.0.8',
         '--notes-file=' . $root . '/notes.txt', '--output=' . $nextDir,

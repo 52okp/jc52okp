@@ -14,20 +14,20 @@
 
 后端项目标识为 `jc52okp`。每次发布需要 GitHub [52okp/jc52okp](https://github.com/52okp/jc52okp) 的正式 `vX.Y.Z` Release 同时包含 `jc52okp-update.zip` 与 `update-manifest.json`。随后在 52okp 统一更新中心导入、校验并发布，站点后台才会检查到新版。清单的 `from` 必须等于站点当前 `APP_VERSION`；不要覆盖已发布版本的资产。
 
-构建增量更新时，先把**紧邻上一版** Release 的两个资产下载到仓库外的临时目录。以从 1.0.7 升到 1.0.8 为例：
+构建增量更新时，先把**紧邻上一版** Release 的两个资产下载到仓库外的临时目录。以从 1.0.7 升到 1.1.0 为例：
 
 ```powershell
 gh release download v1.0.7 -R 52okp/jc52okp -p jc52okp-update.zip -p update-manifest.json -D D:/jc-release/base
-php backend/scripts/build-update.php --project=jc52okp --version=1.0.8 --from=1.0.7 --notes-file=D:/jc-release/notes.txt --output=D:/jc-release/output --base-package=D:/jc-release/base/jc52okp-update.zip --base-manifest=D:/jc-release/base/update-manifest.json
+php backend/scripts/build-update.php --project=jc52okp --version=1.1.0 --from=1.0.7 --notes-file=D:/jc-release/notes.txt --output=D:/jc-release/output --base-package=D:/jc-release/base/jc52okp-update.zip --base-manifest=D:/jc-release/base/update-manifest.json --manual-migration=database/migrations/20261011120000_harden_authentication.php
 ```
 
-先创建 `base/` 和 `output/`，并准备非空的 `notes.txt`。构建器会校验基线包和清单，只加入新增或哈希变化的文件；包内保留完整文件哈希清单，所以下一版可以继续以前一份增量包为基线。删除旧代码文件会被拒绝，须另行设计带备份与恢复的清理步骤。新增或修改数据库迁移也不通过普通在线更新包自动执行。首次安装包与后续增量包不要混用。
+先创建 `base/` 和 `output/`，并准备非空的 `notes.txt`。构建器会校验基线包和清单，只加入新增或哈希变化的文件；外部清单保留完整文件哈希清单，所以下一版可以继续以前一份增量包为基线。包内版本文件保持在更新中心要求的 4 KB 以内。删除旧代码文件会被拒绝，须另行设计带备份与恢复的清理步骤。新增或修改数据库迁移也不通过普通在线更新包自动执行。首次安装包与后续增量包不要混用。
 
 站点点击“安装此版本”后，由服务器后台任务下载、校验、备份、替换并做健康检查。服务器 `.env`、数据库、上传目录和运行数据不参与替换。若任务中断，查看 `runtime/update-jobs/<任务 ID>/status.json` 与 `worker.log`；确认执行器已停后，再按实际任务状态使用 `scripts/update-worker.php recover <任务 ID>`，不要在任务运行时手动恢复。
 
 ### 管理员认证安全迁移
 
-认证修复包含 `database/migrations/20261011120000_harden_authentication.php`，将 `system_user.password` 扩至 255 位并给会员令牌建立单列索引。现有在线更新器会拒绝新的数据库迁移，因此这次须在备份数据库后人工发布：先把新迁移文件放到站点相应目录，在宝塔终端用站点 PHP CLI 于后端根目录执行 `/www/server/php/84/bin/php think migrate:run`，确认迁移成功后，再替换同批代码文件。不要先替换登录控制器，否则旧的 32 位密码字段无法保存新哈希。
+1.1.0 认证修复包含 `database/migrations/20261011120000_harden_authentication.php`，将 `system_user.password` 扩至 255 位并给会员令牌建立单列索引。先备份 MySQL 5.7 数据库，将这一份迁移文件手动放到服务器站点根目录的 `database/migrations/`，在后端根目录执行 `/www/server/php/84/bin/php think migrate:run`，核对迁移成功及密码字段长度，再从统一更新中心在线安装 1.1.0。增量包虽然带有该迁移文件供核对，但现有安装器只在服务器上同名文件内容完全一致时跳过，不会写入或执行它。其余变化的代码文件由在线安装器安装；不要先手动覆盖登录控制器。
 
 新版管理员登录直接通过 HTTPS 提交密码，由服务端验证旧 MD5，成功后升级为自带盐的哈希。若 EdgeOne 使用 HTTP 回源，EdgeOne 到源站之间仍可能传输明文密码；上线这批认证改动前应启用加密回源或等效的受保护通道。原有小程序会员令牌会失效，小程序下一次调用会员接口时会自动重新登录；新版令牌有效期 30 天，仅通过 `Member-Token` 请求头传递，数据库只保存摘要。部署后核对后台登录、改密、会员重新登录，以及验证码响应中不再有 `code` 字段。
 

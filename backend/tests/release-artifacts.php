@@ -34,6 +34,11 @@ $zip = new ZipArchive();
 if ($zip->open($zipPath) !== true) throw new RuntimeException('Cannot reopen ZIP');
 try {
     if ($zip->numFiles > 10000) throw new RuntimeException('Too many ZIP entries');
+    $metaJson = $zip->getFromName('update-version.json');
+    if ($metaJson === false || strlen($metaJson) > 4096) throw new RuntimeException('Invalid package metadata size');
+    $meta = json_decode($metaJson, true, 512, JSON_THROW_ON_ERROR);
+    if (($meta['product'] ?? null) !== $project || ($meta['version'] ?? null) !== $version ||
+        ($meta['from'] ?? null) !== $from) throw new RuntimeException('Package metadata does not match manifest');
     $entries = [];
     for ($i = 0; $i < $zip->numFiles; $i++) {
         $name = $zip->getNameIndex($i);
@@ -41,12 +46,19 @@ try {
             in_array($name, ['install.lock', 'public/install.php'], true)) {
             throw new RuntimeException('Forbidden release entry: ' . $name);
         }
+        if ($name !== 'update-version.json' && isset($manifest['files']) &&
+            ($manifest['files'][$name] ?? null) !== hash('sha256', (string)$zip->getFromIndex($i))) {
+            throw new RuntimeException('Release entry does not match manifest inventory: ' . $name);
+        }
         $entries[$name] = true;
     }
-    foreach (['update-version.json', 'app/service/UpdateInstall.php', 'app/admin/Img2Storage.php',
-        'scripts/update-worker.php', 'scripts/update-health.php'] as $required) {
+    $requiredEntries = ($meta['kind'] ?? '') === 'delta' ? ['update-version.json'] :
+        ['update-version.json', 'app/service/UpdateInstall.php', 'app/admin/Img2Storage.php',
+            'scripts/update-worker.php', 'scripts/update-health.php'];
+    foreach ($requiredEntries as $required) {
         if (!isset($entries[$required])) throw new RuntimeException('Missing release entry: ' . $required);
     }
+    if (($meta['kind'] ?? '') === 'delta' && count($entries) < 2) throw new RuntimeException('Empty delta release');
     echo "Release artifacts verified: {$zip->numFiles} entries, " . filesize($zipPath) . " ZIP bytes\n";
 } finally {
     $zip->close();

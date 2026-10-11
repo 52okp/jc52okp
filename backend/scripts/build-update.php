@@ -9,7 +9,7 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli') exit(1);
 if (!extension_loaded('zip')) { fwrite(STDERR, "zip extension is required\n"); exit(1); }
 
-$args = getopt('', ['project:', 'version:', 'from:', 'notes-file:', 'output:', 'base-package:', 'base-manifest:']);
+$args = getopt('', ['project:', 'version:', 'from:', 'notes-file:', 'output:', 'base-package:', 'base-manifest:', 'manual-migration:']);
 $project = (string)($args['project'] ?? '');
 $version = (string)($args['version'] ?? '');
 $from = (string)($args['from'] ?? '');
@@ -17,6 +17,7 @@ $notesFile = (string)($args['notes-file'] ?? '');
 $output = (string)($args['output'] ?? '');
 $basePackage = (string)($args['base-package'] ?? '');
 $baseManifest = (string)($args['base-manifest'] ?? '');
+$manualMigration = (string)($args['manual-migration'] ?? '');
 $delta = $basePackage !== '' || $baseManifest !== '';
 if (!preg_match('/^[a-z][a-z0-9-]{1,47}$/', $project) ||
     !preg_match('/^\d+\.\d+\.\d+$/', $version) ||
@@ -24,7 +25,8 @@ if (!preg_match('/^[a-z][a-z0-9-]{1,47}$/', $project) ||
     version_compare($version, $from, '<=') ||
     !is_file($notesFile) || trim((string)file_get_contents($notesFile)) === '' ||
     !is_dir($output) || !is_writable($output) ||
-    ($delta && (!is_file($basePackage) || !is_file($baseManifest)))) {
+    ($delta && (!is_file($basePackage) || !is_file($baseManifest))) ||
+    ($manualMigration !== '' && (!$delta || !preg_match('~^database/migrations/[A-Za-z0-9_]+\.php$~', $manualMigration)))) {
     fwrite(STDERR, "Provide valid project, ascending versions, notes, output, and both baseline files for a delta.\n");
     exit(1);
 }
@@ -85,7 +87,10 @@ $readBaseline = static function () use ($basePackage, $baseManifest, $project, $
         if (!is_array($meta) || ($meta['product'] ?? '') !== $project || ($meta['version'] ?? '') !== $from) {
             throw new RuntimeException('Baseline ZIP has the wrong product or version');
         }
-        $snapshot = $meta['files'] ?? null;
+        $snapshot = $manifest['files'] ?? $meta['files'] ?? null;
+        if (isset($manifest['files'], $meta['files']) && $manifest['files'] !== $meta['files']) {
+            throw new RuntimeException('Baseline manifest and ZIP inventories differ');
+        }
         if ($snapshot !== null && (!is_array($snapshot) || array_is_list($snapshot))) {
             throw new RuntimeException('Baseline file inventory is invalid');
         }
@@ -142,8 +147,11 @@ try {
         if (!$delta || ($baseline[$name] ?? null) !== $snapshot[$name]) $changed[$name] = $path;
     }
     if (!$changed) throw new RuntimeException('No code files changed since the baseline release');
+    if ($manualMigration !== '' && (!isset($changed[$manualMigration]) || isset($baseline[$manualMigration]))) {
+        throw new RuntimeException('Manual migration must be a new file in this delta: ' . $manualMigration);
+    }
     foreach ($changed as $name => $_) {
-        if ($delta && str_starts_with($name, 'database/migrations/')) {
+        if ($delta && str_starts_with($name, 'database/migrations/') && $name !== $manualMigration) {
             throw new RuntimeException('Database migration changed; use a backed-up manual release: ' . $name);
         }
     }
@@ -153,8 +161,10 @@ try {
         throw new RuntimeException('Cannot create ZIP');
     }
     $meta = ['product' => $project, 'version' => $version, 'from' => $from,
-        'kind' => $delta ? 'delta' : 'full', 'files' => $snapshot];
-    if (!$zip->addFromString('update-version.json', json_encode($meta, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR))) {
+        'kind' => $delta ? 'delta' : 'full'];
+    if ($manualMigration !== '') $meta['manual_migrations'] = [$manualMigration];
+    $metaJson = json_encode($meta, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+    if (strlen($metaJson) > 4096 || !$zip->addFromString('update-version.json', $metaJson)) {
         throw new RuntimeException('Cannot write package metadata');
     }
     foreach ($changed as $name => $path) {
@@ -166,7 +176,7 @@ try {
         'format' => 2, 'product' => $project, 'version' => $version, 'from' => $from,
         'package' => basename($zipPath), 'size' => filesize($zipPath),
         'sha256' => hash_file('sha256', $zipPath),
-        'notes' => trim((string)file_get_contents($notesFile)),
+        'notes' => trim((string)file_get_contents($notesFile)), 'files' => $snapshot,
     ];
     if (file_put_contents($manifestPath, json_encode($manifest,
         JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n") === false) {
