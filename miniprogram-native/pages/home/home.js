@@ -1,6 +1,6 @@
 const { BASE_URL, getHome, shareImageUrl } = require('../../common/api');
 const { topInset, backendImageUrl } = require('../../common/ui');
-const FALLBACK_BANNER = { id: 0, backgroundImage: '', characterImage: '', articleId: 0 };
+const FALLBACK_BANNER = { id: 0, title: '', backgroundImage: '', characterImage: '', articleId: 0 };
 Page({
   data: { banners: [FALLBACK_BANNER], activeBanner: FALLBACK_BANNER, defaultBackground: '', bannerIndex: 0, keyword: '', articles: [], loading: false, topInset: topInset() },
   onShow() { this.pageVisible = true; this.loadHome(); },
@@ -18,6 +18,7 @@ Page({
       const banners = (data.banners || []).map(item => {
         return {
           id: item.id,
+          title: String(item.title || '').trim(),
           backgroundImage: backendImageUrl(item.image, BASE_URL) || defaultBackground,
           characterImage: backendImageUrl(item.character_image, BASE_URL),
           articleId: Number(item.article_id) || 0

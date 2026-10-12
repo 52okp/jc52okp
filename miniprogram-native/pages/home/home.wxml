@@ -7,7 +7,8 @@
       <view class="hero-plate"></view>
       <view wx:if="{{activeBanner.characterImage}}" class="hero-character-clip"><image class="hero-character" src="{{activeBanner.characterImage}}" mode="aspectFit" webp="{{true}}" binderror="characterError"/></view>
       <view class="hero-copy">
-        <view class="hero-headline">让 AI 更简单<text>更好用</text></view>
+        <view wx:if="{{activeBanner.title}}" class="hero-headline custom-headline">{{activeBanner.title}}</view>
+        <view wx:else class="hero-headline">让 AI 更简单<text>更好用</text></view>
         <view class="hero-description">从入门到实战，系统学习 AI 技能</view>
       </view>
     </view>

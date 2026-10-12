@@ -13,6 +13,7 @@
 .hero-character { display:block; width:420rpx; height:526rpx; }
 .hero-copy { position:relative; z-index:2; width:55%; height:100%; padding:52rpx 0 0 30rpx; box-sizing:border-box; color:#12336e; border-radius:48rpx 0 0 0; background:radial-gradient(ellipse at 0 35%,rgba(255,255,255,.62),transparent 78%); }
 .hero-headline { font-size:47rpx; line-height:1.2; font-weight:800; letter-spacing:1rpx; }
+.custom-headline { max-height:114rpx; overflow:hidden; word-break:break-all; }
 .hero-headline text { display:block; }
 .hero-description { width:330rpx; margin-top:16rpx; font-size:22rpx; line-height:1.5; color:#4b6590; }
 .hero-bottom-fade { position:absolute; z-index:4; left:0; right:0; bottom:0; height:122rpx; background:linear-gradient(180deg,rgba(245,248,253,0),#F5F8FD); pointer-events:none; }

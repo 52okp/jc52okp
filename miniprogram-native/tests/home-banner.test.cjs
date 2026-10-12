@@ -34,14 +34,15 @@ function mount(home) {
 test('backend banners switch inside a fixed hero and keep their own article targets', async () => {
   const { page, navigations } = mount({
     banners: [
-      { id: 10, image: '/upload/first.webp', character_image: '/upload/first.png', article_id: 31 },
-      { id: 11, image: 'https://cdn.example.com/second.jpg', character_image: '', article_id: 32 }
+      { id: 10, title: 'ComfyUI 从零开始', image: '/upload/first.webp', character_image: '/upload/first.png', article_id: 31 },
+      { id: 11, title: '  ', image: 'https://cdn.example.com/second.jpg', character_image: '', article_id: 32 }
     ],
     default_banner_background: '/static/hero/background.webp',
     recommend: [{ id: 7, title: '真实推荐' }]
   });
   await page.loadHome();
   assert.equal(page.data.banners.length, 2);
+  assert.equal(page.data.activeBanner.title, 'ComfyUI 从零开始');
   assert.equal(page.data.banners[0].backgroundImage, 'https://jc.52okp.com/upload/first.webp');
   assert.equal(page.data.banners[0].characterImage, 'https://jc.52okp.com/upload/first.png');
   assert.equal(page.data.banners[1].characterImage, '');
@@ -51,6 +52,7 @@ test('backend banners switch inside a fixed hero and keep their own article targ
   page.heroTouchEnd({ changedTouches: [{ pageX: 110, pageY: 185 }] });
   assert.equal(page.data.bannerIndex, 1);
   assert.equal(page.data.activeBanner.articleId, 32);
+  assert.equal(page.data.activeBanner.title, '');
   page.openHero();
   assert.deepEqual(navigations, [], 'a swipe must not also open an article');
   page.lastSwipeAt = 0;
@@ -92,6 +94,8 @@ test('hero images are served by the backend instead of bundled locally', () => {
   assert.doesNotMatch(markup, /\/static\/hero\//);
   assert.match(markup, /wx:if="\{\{activeBanner.characterImage\}\}"/);
   assert.match(markup, /class="hero-character"[^>]*webp="\{\{true\}\}"/);
+  assert.match(markup, /wx:if="\{\{activeBanner.title\}\}"/);
+  assert.match(markup, /wx:else class="hero-headline">让 AI 更简单<text>更好用<\/text>/);
 });
 
 test('automatic rotation stops when the page is hidden', async () => {
