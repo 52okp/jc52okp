@@ -1,5 +1,5 @@
 <view class="my-screen">
-  <view class="my-header" style="padding-top:{{topInset}}px;"><view class="header-title">我的</view><view class="header-subtitle">管理你的学习与收藏</view></view>
+  <view class="my-header" style="padding-top:{{topInset}}px;"><view class="header-title">我的</view></view>
   <view class="profile-card">
     <view class="avatar-shell">
       <image class="avatar" src="{{avatar}}" mode="aspectFill"/>
