@@ -110,6 +110,22 @@ test('automatic rotation stops when the page is hidden', async () => {
   assert.equal(page.bannerTimer, null);
 });
 
+test('returning to home keeps fresh articles without another request', async () => {
+  const home = { banners: [], default_banner_background: '', recommend: [{ id: 21 }] };
+  const { page } = mount(home);
+  let requests = 0;
+  wx.request = options => {
+    requests += 1;
+    options.success({ data: { code: 1, data: home } });
+  };
+  page.pageVisible = true;
+  await page.loadHome();
+  page.onHide();
+  page.onShow();
+  assert.equal(requests, 1);
+  assert.deepEqual(page.data.articles.map(article => article.id), [21]);
+});
+
 test('pull refresh contracts the fixed upper-left title and restores it after settling', async () => {
   const home = { banners: [], default_banner_background: '/static/hero/background.webp', recommend: [{ id: 12 }] };
   const { page } = mount(home);

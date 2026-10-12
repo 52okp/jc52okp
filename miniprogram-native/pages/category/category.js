@@ -14,19 +14,28 @@ function orderCategories(items) {
   return ordered;
 }
 
+function labelArticles(items, categories) {
+  const names = {};
+  categories.forEach(item => { names[item.id] = item.name; });
+  return (items || []).map(item => ({ ...item, categoryName: names[item.category_id] || '' }));
+}
+
 Page({
   data: { categories: [], categoryId: 0, categoryName: '', list: [], page: 1, total: 0, loading: false, initializing: true, topInset: topInset() },
   onLoad() { this.init(); },
   onShow() {
     const tabBar = this.getTabBar && this.getTabBar();
-    if (tabBar) tabBar.setData({ selected: 1 });
+    if (tabBar && tabBar.data.selected !== 1) tabBar.setData({ selected: 1 });
   },
   async init() {
-    try {
-      const categories = orderCategories(await getCategories() || []);
-      this.setData({ categories, initializing: false });
-    } catch (_) { this.setData({ initializing: false }); }
-    return this.selectAll();
+    const version = this.requestVersion || 0;
+    this.setData({ loading: true });
+    const categoriesRequest = getCategories().then(items => orderCategories(items || [])).catch(() => []);
+    const articlesRequest = getArticleList({ page: 1, limit: 10 }).catch(() => null);
+    const [categories, data] = await Promise.all([categoriesRequest, articlesRequest]);
+    this.setData({ categories, initializing: false });
+    if (version !== (this.requestVersion || 0)) return;
+    this.setData({ list: labelArticles(data && data.list, categories), total: data && data.total || 0, loading: false });
   },
   selectAll() { return this.selectCategory(0, ''); },
   select(event) {
@@ -50,9 +59,7 @@ Page({
       if (categoryId > 0) params.category_id = categoryId;
       const data = await getArticleList(params);
       if (this.data.categoryId !== categoryId || this.requestVersion !== version) return;
-      const categoryNames = {};
-      this.data.categories.forEach(item => { categoryNames[item.id] = item.name; });
-      const articles = (data.list || []).map(item => ({ ...item, categoryName: categoryNames[item.category_id] || '' }));
+      const articles = labelArticles(data.list, this.data.categories);
       this.setData({ list: page === 1 ? articles : this.data.list.concat(articles), total: data.total || 0 });
     } catch (_) {} finally { if (this.requestVersion === version) this.setData({ loading: false }); }
   },

@@ -6,8 +6,10 @@ Page({
   onShow() {
     this.pageVisible = true;
     const tabBar = this.getTabBar && this.getTabBar();
-    if (tabBar) tabBar.setData({ selected: 0 });
-    this.loadHome();
+    if (tabBar && tabBar.data.selected !== 0) tabBar.setData({ selected: 0 });
+    if (this.data.loading) return;
+    if (!this.lastHomeLoadedAt || Date.now() - this.lastHomeLoadedAt > 60000) this.loadHome();
+    else this.startBannerTimer();
   },
   onHide() { this.pageVisible = false; this.stopBannerTimer(); this.setData({ brandContracted: false }); },
   onUnload() { this.pageVisible = false; this.stopBannerTimer(); this.loadVersion = (this.loadVersion || 0) + 1; },
@@ -55,9 +57,10 @@ Page({
         bannerIndex: 0,
         articles: data.recommend || []
       });
+      this.lastHomeLoadedAt = Date.now();
       if (this.pageVisible) this.startBannerTimer();
     } catch (_) {
-      if (version === this.loadVersion) this.setData({ articles: [] });
+      // Retain the last visible articles if a background refresh fails.
     } finally {
       if (version === this.loadVersion) this.setData({ loading: false });
     }

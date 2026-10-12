@@ -4,10 +4,19 @@ Page({
   data: { member: {}, avatar: '/static/favicon.png', nicknameInput: '', showNick: false, saving: false, topInset: topInset() + 10 },
   onShow() {
     const tabBar = this.getTabBar && this.getTabBar();
-    if (tabBar) tabBar.setData({ selected: 2 });
-    this.load();
+    if (tabBar && tabBar.data.selected !== 2) tabBar.setData({ selected: 2 });
+    if (!this.lastMemberLoadedAt || Date.now() - this.lastMemberLoadedAt > 60000) this.load();
   },
-  async load() { try { const member = await getMemberInfo() || {}; this.setData({ member, avatar: member.avatar || '/static/favicon.png' }); } catch (_) {} },
+  async load() {
+    if (this.memberLoading) return;
+    this.memberLoading = true;
+    try {
+      const member = await getMemberInfo() || {};
+      this.setData({ member, avatar: member.avatar || '/static/favicon.png' });
+      this.lastMemberLoadedAt = Date.now();
+    } catch (_) {}
+    finally { this.memberLoading = false; }
+  },
   chooseAvatar(event) {
     const filePath = event.detail.avatarUrl;
     if (!filePath) return;

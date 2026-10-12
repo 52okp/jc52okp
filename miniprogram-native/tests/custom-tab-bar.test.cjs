@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-test('floating tab bar keeps the three existing routes and switches to the selected tab', async () => {
+test('floating tab bar switches pages immediately and restores selection on failure', () => {
   const app = JSON.parse(fs.readFileSync(path.join(__dirname, '../app.json'), 'utf8'));
   assert.equal(app.tabBar.custom, true);
   assert.deepEqual(app.tabBar.list.map(item => item.pagePath), [
@@ -16,9 +16,10 @@ test('floating tab bar keeps the three existing routes and switches to the selec
 
   let definition;
   const navigations = [];
+  let pendingSwitch;
   global.Component = value => { definition = value; };
   global.getCurrentPages = () => [{ route: 'pages/category/category' }];
-  global.wx = { switchTab(options) { navigations.push(options.url); } };
+  global.wx = { switchTab(options) { navigations.push(options.url); pendingSwitch = options; } };
   delete require.cache[require.resolve('../custom-tab-bar/index')];
   require('../custom-tab-bar/index');
   const tabBar = {
@@ -32,7 +33,7 @@ test('floating tab bar keeps the three existing routes and switches to the selec
   assert.deepEqual(navigations, []);
   tabBar.switchTab({ currentTarget: { dataset: { index: 2 } } });
   assert.equal(tabBar.data.selected, 2);
-  await new Promise(resolve => setTimeout(resolve, 220));
   assert.deepEqual(navigations, ['/pages/my/my']);
-  definition.lifetimes.detached.call(tabBar);
+  pendingSwitch.fail();
+  assert.equal(tabBar.data.selected, 1);
 });

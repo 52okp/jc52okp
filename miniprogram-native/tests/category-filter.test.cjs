@@ -46,7 +46,9 @@ function mount() {
 
 test('all chip loads real articles without category filter and category chips keep backend IDs', async () => {
   const { page, requests } = mount();
-  await page.init();
+  const initialLoad = page.init();
+  assert.equal(requests.length, 2, 'categories and first-page articles should load in parallel');
+  await initialLoad;
   assert.equal(page.data.categoryId, 0);
   assert.deepEqual(page.data.categories.map(item => item.id), [2, 3, 6, 7, 4, 5]);
   assert.equal(page.data.list.length, 2);
