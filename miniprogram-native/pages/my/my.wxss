@@ -5,22 +5,23 @@
   background: #F5F8FD;
 }
 
-.profile-card {
+.profile-stage {
   position: sticky;
   z-index: 5;
-  display: flex;
-  align-items: center;
-  padding: 0 28rpx;
   box-sizing: border-box;
-  background: #fff;
+  background: #F5F8FD;
 }
-.profile-card.settling { transition: height .22s ease-out, border-radius .22s ease-out; }
-.profile-card.settling .avatar-shell { transition: width .22s ease-out, height .22s ease-out, flex-basis .22s ease-out, margin-right .22s ease-out; }
-.profile-card.settling .profile-name { transition: font-size .22s ease-out; }
+.profile-stage.settling { transition: height .22s ease-out; }
+.profile-stage.settling .avatar-shell { transition: top .22s ease-out, width .22s ease-out, height .22s ease-out, margin-left .22s ease-out, opacity .22s ease-out, background .22s ease-out; }
+.profile-stage.settling .avatar { transition: opacity .22s ease-out; }
+.profile-stage.settling .goo-tail { transition: top .22s ease-out, border-width .22s ease-out, opacity .22s ease-out; }
+.profile-stage.settling .profile-expanded { transition: opacity .22s ease-out, transform .22s ease-out; }
+.profile-stage.settling .profile-compact { transition: opacity .22s ease-out; }
 
 .avatar-shell {
-  position: relative;
-  flex: 0 0 auto;
+  position: absolute;
+  left: 50%;
+  z-index: 2;
   overflow: hidden;
   border-radius: 50%;
   background: #e6edf8;
@@ -43,10 +44,11 @@
   opacity: 0;
 }
 
-.profile-details { flex: 1; min-width: 0; padding: 10rpx 0; }
-.profile-name { overflow: hidden; color: #192437; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.goo-tail { position: absolute; left: 50%; z-index: 3; width: 0; height: 0; transform: translateX(-50%); pointer-events: none; }
+.profile-expanded { position: absolute; top: 158rpx; left: 0; right: 0; text-align: center; }
+.profile-name { overflow: hidden; color: #192437; font-size: 35rpx; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
 .profile-id { overflow: hidden; margin-top: 8rpx; color: #778397; font-size: 23rpx; white-space: nowrap; text-overflow: ellipsis; }
-.profile-chevron { margin-left: 16rpx; }
+.profile-compact { position: absolute; top: 19rpx; left: 10rpx; right: 10rpx; overflow: hidden; color: #192437; font-size: 30rpx; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
 
 .section-label {
   margin: 42rpx 10rpx 14rpx;

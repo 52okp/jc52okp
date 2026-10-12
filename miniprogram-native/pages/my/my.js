@@ -4,12 +4,21 @@ const profileInset = topInset() + 34;
 const collapseDistance = 90;
 
 function profileLayout(progress) {
-  const height = Math.round(224 - 96 * progress);
-  const avatarSize = Math.round(132 - 56 * progress);
+  const clamp = value => Math.max(0, Math.min(1, value));
+  const height = Math.round(260 - 182 * progress);
+  const avatarSize = Math.round(144 - 116 * progress);
+  const avatarTop = Math.round(2 - 64 * progress);
+  const black = clamp((progress - 0.45) / 0.35);
+  const exit = clamp((1 - progress) / 0.15);
+  const tailHeight = Math.round(18 * black);
+  const tailHalfWidth = Math.round(6 * black);
   return {
-    profileStyle: `top:${profileInset}px;height:${height}rpx;border-radius:${Math.round(26 - 6 * progress)}rpx;`,
-    avatarStyle: `width:${avatarSize}rpx;height:${avatarSize}rpx;flex-basis:${avatarSize}rpx;margin-right:${Math.round(24 - 6 * progress)}rpx;`,
-    profileNameStyle: `font-size:${Math.round(35 - 5 * progress)}rpx;`
+    profileStyle: `top:${profileInset}px;height:${height}rpx;`,
+    avatarStyle: `top:${avatarTop}rpx;width:${avatarSize}rpx;height:${avatarSize}rpx;margin-left:${-Math.round(avatarSize / 2)}rpx;background:rgba(0,0,0,${black.toFixed(2)});opacity:${exit.toFixed(2)};`,
+    avatarImageStyle: `opacity:${(1 - black).toFixed(2)};`,
+    gooTailStyle: `top:${avatarTop - tailHeight + 4}rpx;border-left:${tailHalfWidth}rpx solid transparent;border-right:${tailHalfWidth}rpx solid transparent;border-bottom:${tailHeight}rpx solid #000;opacity:${(black * exit).toFixed(2)};`,
+    expandedTextStyle: `opacity:${clamp(1 - progress * 2).toFixed(2)};transform:translateY(${-Math.round(38 * progress)}rpx);`,
+    compactTextStyle: `opacity:${clamp((progress - 0.4) / 0.35).toFixed(2)};`
   };
 }
 

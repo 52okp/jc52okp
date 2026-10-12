@@ -18,25 +18,36 @@ test('My profile follows an upward swipe and settles into a compact header', () 
   };
   const touch = (x, y) => ({ touches: [{ pageX: x, pageY: y }] });
 
-  assert.match(page.data.profileStyle, /height:224rpx/);
+  assert.match(page.data.profileStyle, /height:260rpx/);
+  assert.match(page.data.avatarStyle, /width:144rpx/);
+  assert.match(page.data.avatarImageStyle, /opacity:1\.00/);
   page.profileTouchStart(touch(100, 300));
   page.profileTouchMove(touch(100, 246));
   assert.ok(page.data.profileProgress > 0.5 && page.data.profileProgress < 1);
   page.profileTouchEnd();
   assert.equal(page.data.profileProgress, 1);
-  assert.match(page.data.profileStyle, /height:128rpx/);
-  assert.match(page.data.avatarStyle, /width:76rpx/);
+  assert.match(page.data.profileStyle, /height:78rpx/);
+  assert.match(page.data.avatarStyle, /width:28rpx/);
+  assert.match(page.data.avatarStyle, /opacity:0\.00/);
+  assert.match(page.data.gooTailStyle, /opacity:0\.00/);
 
   page.profileTouchStart(touch(100, 200));
   page.profileTouchMove(touch(100, 295));
   page.profileTouchEnd();
   assert.equal(page.data.profileProgress, 0);
-  assert.match(page.data.profileStyle, /height:224rpx/);
+  assert.match(page.data.profileStyle, /height:260rpx/);
 
   page.profileTouchStart(touch(100, 300));
   page.profileTouchMove(touch(210, 290));
   page.profileTouchEnd();
   assert.equal(page.data.profileProgress, 0);
+
+  page.profileTouchStart(touch(100, 300));
+  page.profileTouchMove(touch(100, 232));
+  assert.ok(page.data.profileProgress > 0.7 && page.data.profileProgress < 0.8);
+  assert.match(page.data.gooTailStyle, /opacity:0\.[1-9]/);
+  assert.match(page.data.avatarImageStyle, /opacity:0\.[0-9]/);
+  page.profileTouchEnd();
 
   const markup = fs.readFileSync(path.join(__dirname, '../pages/my/my.wxml'), 'utf8');
   for (const route of ['favorites/favorites', 'history/history', 'about/about']) {

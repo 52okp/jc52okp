@@ -1,14 +1,15 @@
 <view class="my-screen" style="padding-top:{{topInset}}px;" bindtouchstart="profileTouchStart" bindtouchmove="profileTouchMove" bindtouchend="profileTouchEnd" bindtouchcancel="profileTouchEnd">
-  <view class="profile-card {{profileSettling ? 'settling' : ''}}" style="{{profileStyle}}">
+  <view class="profile-stage {{profileSettling ? 'settling' : ''}}" style="{{profileStyle}}">
     <view class="avatar-shell" style="{{avatarStyle}}">
-      <image class="avatar" src="{{avatar}}" mode="aspectFill"/>
-      <button open-type="chooseAvatar" bindchooseavatar="chooseAvatar" class="avatar-button" aria-label="更换头像"></button>
+      <image class="avatar" src="{{avatar}}" mode="aspectFill" style="{{avatarImageStyle}}"/>
+      <button disabled="{{profileProgress >= 1}}" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" class="avatar-button" aria-label="更换头像"></button>
     </view>
-    <view class="profile-details" bindtap="openNick">
-      <view class="profile-name" style="{{profileNameStyle}}">{{member.nickname || '微信用户'}}</view>
+    <view class="goo-tail" style="{{gooTailStyle}}"></view>
+    <view class="profile-expanded" style="{{expandedTextStyle}}" bindtap="openNick">
+      <view class="profile-name">{{member.nickname || '微信用户'}}</view>
       <view class="profile-id">{{member.id ? 'ID: ' + member.id : '点击设置昵称'}}</view>
     </view>
-    <view class="chevron profile-chevron" bindtap="openNick">›</view>
+    <view class="profile-compact" style="{{compactTextStyle}}" bindtap="openNick">{{member.nickname || '微信用户'}}</view>
   </view>
 
   <view class="section-label">我的内容</view>
