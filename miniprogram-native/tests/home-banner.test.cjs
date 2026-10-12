@@ -109,3 +109,32 @@ test('automatic rotation stops when the page is hidden', async () => {
   page.onHide();
   assert.equal(page.bannerTimer, null);
 });
+
+test('pull refresh holds the indicator until the home request settles', async () => {
+  const home = { banners: [], default_banner_background: '/static/hero/background.webp', recommend: [{ id: 12 }] };
+  const { page } = mount(home);
+  let respond;
+  let requests = 0;
+  wx.request = options => {
+    requests += 1;
+    respond = () => options.success({ data: { code: 1, data: home } });
+  };
+  const refresh = page.onRefresh();
+  assert.equal(page.data.refreshing, true);
+  await page.onRefresh();
+  assert.equal(requests, 1, 'a second pull must not start another home request');
+  respond();
+  await refresh;
+  assert.equal(page.data.refreshing, false);
+  assert.deepEqual(page.data.articles.map(article => article.id), [12]);
+  wx.request = options => options.fail(new Error('offline'));
+  await page.onRefresh();
+  assert.equal(page.data.refreshing, false, 'a failed request must also release the refresher');
+
+  const miniRoot = path.resolve(__dirname, '..');
+  const markup = fs.readFileSync(path.join(miniRoot, 'pages/home/home.wxml'), 'utf8');
+  const config = JSON.parse(fs.readFileSync(path.join(miniRoot, 'pages/home/home.json'), 'utf8'));
+  assert.match(markup, /slot="refresher"/);
+  assert.match(markup, /refresher-triggered="\{\{refreshing\}\}"/);
+  assert.notEqual(config.enablePullDownRefresh, true);
+});

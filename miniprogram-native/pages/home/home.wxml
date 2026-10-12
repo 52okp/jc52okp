@@ -1,4 +1,6 @@
-<view class="home-screen">
+<scroll-view class="home-scroll" scroll-y="{{true}}" enable-back-to-top="{{true}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" refresher-threshold="{{100}}" refresher-default-style="none" refresher-background="#F5F8FD" bindrefresherrefresh="onRefresh">
+  <view slot="refresher" class="refresh-panel"><view class="refresh-bubble {{refreshing ? 'spinning' : ''}}">↻</view></view>
+  <view class="home-screen">
   <view class="hero-stage {{activeBanner.characterImage ? 'layered-hero' : 'image-hero'}}" style="padding-top:{{topInset}}px;" bindtouchstart="heroTouchStart" bindtouchend="heroTouchEnd" bindtouchcancel="heroTouchCancel" bindtap="openHero">
     <image wx:if="{{activeBanner.backgroundImage}}" class="hero-background" src="{{activeBanner.backgroundImage}}" mode="aspectFill" webp="{{true}}" binderror="heroError"/>
     <view class="hero-veil"></view>
@@ -27,4 +29,5 @@
     <article-card wx:for="{{articles}}" wx:key="id" article="{{item}}" bindopen="openArticle"/>
     <view wx:if="{{loading}}" class="empty">加载中…</view><view wx:elif="{{!articles.length}}" class="empty">暂无推荐文章</view>
   </view>
-</view>
+  </view>
+</scroll-view>

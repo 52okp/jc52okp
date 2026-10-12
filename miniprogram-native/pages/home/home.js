@@ -2,11 +2,17 @@ const { BASE_URL, getHome, shareImageUrl } = require('../../common/api');
 const { topInset, backendImageUrl } = require('../../common/ui');
 const FALLBACK_BANNER = { id: 0, title: '', backgroundImage: '', characterImage: '', articleId: 0 };
 Page({
-  data: { banners: [FALLBACK_BANNER], activeBanner: FALLBACK_BANNER, defaultBackground: '', bannerIndex: 0, keyword: '', articles: [], loading: false, topInset: topInset() },
+  data: { banners: [FALLBACK_BANNER], activeBanner: FALLBACK_BANNER, defaultBackground: '', bannerIndex: 0, keyword: '', articles: [], loading: false, refreshing: false, topInset: topInset() },
   onShow() { this.pageVisible = true; this.loadHome(); },
   onHide() { this.pageVisible = false; this.stopBannerTimer(); },
   onUnload() { this.pageVisible = false; this.stopBannerTimer(); this.loadVersion = (this.loadVersion || 0) + 1; },
-  onPullDownRefresh() { this.loadHome().finally(() => wx.stopPullDownRefresh()); },
+  async onRefresh() {
+    if (this.data.refreshing) return;
+    this.stopBannerTimer();
+    this.setData({ refreshing: true });
+    try { await this.loadHome(); }
+    finally { this.setData({ refreshing: false }); }
+  },
   async loadHome() {
     const version = (this.loadVersion || 0) + 1;
     this.loadVersion = version;
