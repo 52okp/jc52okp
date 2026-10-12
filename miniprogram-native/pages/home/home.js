@@ -6,7 +6,7 @@ Page({
   onShow() {
     this.pageVisible = true;
     const tabBar = this.getTabBar && this.getTabBar();
-    if (tabBar && tabBar.data.selected !== 0) tabBar.setData({ selected: 0 });
+    if (tabBar) tabBar.setData({ selected: 0, animated: false });
     if (this.data.loading) return;
     if (!this.lastHomeLoadedAt || Date.now() - this.lastHomeLoadedAt > 60000) this.loadHome();
     else this.startBannerTimer();
