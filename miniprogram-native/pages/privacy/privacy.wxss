@@ -1,0 +1,4 @@
+.privacy-page { min-height: 100vh; padding: 30rpx 28rpx calc(48rpx + env(safe-area-inset-bottom)); box-sizing: border-box; background: #F5F8FD; }
+.privacy-content { padding: 36rpx; border-radius: 22rpx; background: #fff; color: #192437; font-size: 28rpx; line-height: 1.85; white-space: pre-wrap; overflow-wrap: break-word; }
+.privacy-state { padding: 96rpx 24rpx; color: #778397; font-size: 26rpx; text-align: center; }
+.privacy-state button { width: 220rpx; margin-top: 24rpx; border-radius: 99rpx; background: #e9f0ff; color: #3478F6; font-size: 26rpx; }

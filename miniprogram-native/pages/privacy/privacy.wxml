@@ -1,0 +1,5 @@
+<view class="privacy-page">
+  <view wx:if="{{loading}}" class="privacy-state">加载中…</view>
+  <view wx:elif="{{failed}}" class="privacy-state">加载失败，请稍后重试<button bindtap="load">重新加载</button></view>
+  <view wx:else class="privacy-content">{{content || '暂无内容'}}</view>
+</view>

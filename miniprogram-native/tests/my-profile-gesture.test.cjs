@@ -57,7 +57,7 @@ test('My profile follows an upward swipe and settles into a compact header', () 
   assert.ok(!markup.includes('我的收藏'));
   assert.ok(!markup.includes('我的内容') && !markup.includes('应用信息'));
   assert.equal((markup.match(/class="menu-card"/g) || []).length, 1);
-  for (const route of ['history/history', 'about/about']) {
+  for (const route of ['history/history', 'about/about', 'privacy/privacy']) {
     assert.ok(markup.includes(`/pages/${route}`));
   }
 });

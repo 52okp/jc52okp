@@ -16,6 +16,9 @@
     <view class="menu-row" data-url="/pages/about/about" bindtap="go">
       <view class="menu-icon about">i</view><view class="menu-content"><text>关于我们</text><text class="chevron">›</text></view>
     </view>
+    <view class="menu-row" data-url="/pages/privacy/privacy" bindtap="go">
+      <view class="menu-icon privacy"><view class="lock-shackle"></view><view class="lock-body"></view></view><view class="menu-content"><text>隐私政策</text><text class="chevron">›</text></view>
+    </view>
   </view>
   <view wx:if="{{showNick}}" class="mask"><view class="dialog card"><view class="heading">设置昵称</view><input type="nickname" value="{{nicknameInput}}" bindinput="nickInput" placeholder="点击使用微信昵称或手动输入"/><view class="buttons"><button bindtap="closeNick">取消</button><button class="primary" loading="{{saving}}" bindtap="saveNick">保存</button></view></view></view>
 </view>
