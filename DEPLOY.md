@@ -41,6 +41,24 @@ php backend/scripts/build-update.php --project=jc52okp --version=1.1.0 --from=1.
 
 用微信开发者工具打开 `miniprogram-native/`，后端 API 基址为 `https://jc.52okp.com`。确认微信公众平台的 request、uploadFile 和实际图片来源域名允许列表，先上传体验版并用真机核对首页、分类、文章 HTML 正文、会员资料、收藏、历史、分享及扫码确认；通过后再提交审核和发布。修改本地文件不会自动更新已发布的小程序。
 
+### 多头图与分层人物
+
+分层头图对应教程后端 `1.1.1`（从生产站点 `1.1.0` 升级），新增 `banner.character_image` 字段。新版首页接口直接查询这个字段，所以**先完成数据库迁移，再在后台安装 1.1.1**。线上更新器不会写入或执行数据库迁移。
+
+1. 在宝塔「数据库」为当前教程后端使用的 MySQL 5.7 数据库创建备份，确认备份文件已生成；同时确认站点后台当前 `APP_VERSION` 为 `1.1.0`。
+2. 把本项目的 [迁移文件](backend/database/migrations/20261012120000_add_banner_character_image.php) 上传到服务器**后端根目录**的 `database/migrations/20261012120000_add_banner_character_image.php`。后端根目录是同时含 `think`、`.env`、`app/` 的目录，不是 `public/`。可从 `v1.1.1` Release ZIP 中取出同一路径的文件；服务器上的文件内容必须与更新包一致，否则在线安装器会拒绝安装。
+3. SSH 进入上述后端根目录，运行：
+
+   ```sh
+   /www/server/php/84/bin/php think migrate:run
+   ```
+
+4. 在宝塔数据库的 SQL 窗口执行 `SHOW COLUMNS FROM banner LIKE 'character_image';`，应返回一行、类型为 `varchar(500)`。若迁移失败或查不到字段，先排查数据库连接及迁移输出，不要安装新版代码。
+5. 在 GitHub `52okp/jc52okp` 创建正式 `v1.1.1` Release，上传 `jc52okp-update.zip` 和 `update-manifest.json`；在 52okp 统一更新中心为项目 `jc52okp` 导入、校验 GitHub 来源并发布。然后回到教程后端「系统更新」检查并安装 `1.1.1`。安装器会核对迁移文件与包内文件相同，更新程序文件并自动将服务器 `.env` 的 `APP_VERSION` 改为 `1.1.1`。
+6. 安装完成后核对首页接口正常返回头图、后台「首页头图」可保存人物 PNG；若程序更新回滚，保留新增字段，先排查更新任务，不要直接删除该字段或恢复过期数据库备份。
+
+后台「首页头图」可以新增或编辑多条启用记录：原“图片”字段作为背景图，新“人物图”上传透明 PNG，排序值大的先展示；未上传人物图的旧记录继续使用小程序内置人物。小程序首页会自动轮播多条记录。图片地址所在域名仍须加入微信小程序图片来源域名允许列表。
+
 ## 发布核对
 
 - 后端：配置和数据库保留，更新包的产品、起始版本、大小和 SHA-256 与正式 Release 一致。

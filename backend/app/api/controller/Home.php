@@ -24,7 +24,7 @@ class Home extends Base
         $banners = Banner::mk()
             ->where(['is_deleted' => 0, 'status' => 1])
             ->order('sort desc,id desc')
-            ->field('id,title,image,article_id')
+            ->field('id,title,image,character_image,article_id')
             ->select()->toArray();
 
         // 分类入口

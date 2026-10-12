@@ -4,7 +4,7 @@
 <!--{if auth("add")}-->
 <button data-modal='{:url("add")}' data-title="添加头图" class='layui-btn layui-btn-sm layui-btn-primary'>添加头图</button>
 <!--{/if}-->
-<span class="margin-left-10 color-desc" style="line-height:32px">首页顶部头图：列表中排在最前（排序值最大）的一张生效</span>
+<span class="margin-left-10 color-desc" style="line-height:32px">启用的头图会按排序值从高到低在小程序首页轮播</span>
 {/block}
 
 {block name="content"}
@@ -23,9 +23,15 @@
                 {checkbox: true, fixed: true},
                 {field: 'sort', title: '排序', width: 90, align: 'center', sort: true, templet: '#SortInputTpl'},
                 {
-                    field: 'image', title: '图片', width: 140, align: 'center', templet: function (d) {
+                    field: 'image', title: '背景图', width: 140, align: 'center', templet: function (d) {
                         if (!d.image) return '-';
                         return layui.laytpl('<div class="headimg" style="width:120px;height:54px;border-radius:6px" data-tips-image data-lazy-src="{{d.image}}"></div>').render(d);
+                    }
+                },
+                {
+                    field: 'character_image', title: '人物 PNG', width: 110, align: 'center', templet: function (d) {
+                        if (!d.character_image) return '默认人物';
+                        return layui.laytpl('<div class="headimg" style="width:72px;height:54px" data-tips-image data-lazy-src="{{d.character_image}}"></div>').render(d);
                     }
                 },
                 {field: 'title', title: '标题', minWidth: 160, templet: '<div>{{d.title||"-"}}</div>'},
