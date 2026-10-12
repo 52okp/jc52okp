@@ -1,6 +1,6 @@
 const { getSetting } = require('../../common/api');
 Page({
-  data: { followAccounts: [], followScrollable: false, showFollow: false },
+  data: { followAccounts: [] },
   onLoad() { this.load(); },
   async load() {
     try {
@@ -15,11 +15,9 @@ Page({
         image: typeof item.image === 'string' ? item.image : '',
         description: typeof item.description === 'string' ? item.description : ''
       })).filter(item => item.image || item.description);
-      this.setData({ followAccounts, followScrollable: followAccounts.length > 1 });
+      this.setData({ followAccounts });
     } catch (_) {}
   },
-  follow() { this.setData({ showFollow: true }); },
-  close() { this.setData({ showFollow: false }); },
   preview(event) {
     const account = this.data.followAccounts[Number(event.currentTarget.dataset.index)];
     if (!account || !account.image) return;

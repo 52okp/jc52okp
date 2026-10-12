@@ -6,7 +6,7 @@ const collapseDistance = 140;
 function profileLayout(progress) {
   const clamp = value => Math.max(0, Math.min(1, value));
   const smoothstep = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
-  const height = Math.round(260 - 182 * progress);
+  const height = Math.round(386 - 308 * progress);
   const avatarSize = Math.round(144 - 116 * progress);
   const avatarTop = Math.round(2 - 64 * progress);
   const black = smoothstep((progress - 0.38) / 0.5);
@@ -14,18 +14,21 @@ function profileLayout(progress) {
   const tailHeight = Math.round(18 * black);
   const tailHalfWidth = Math.round(6 * black);
   const nameOffset = Math.round(50 * (1 - progress));
+  const actionsOpacity = 1 - smoothstep((progress - 0.08) / 0.42);
   return {
     profileStyle: `top:${profileInset}px;height:${height}rpx;`,
     avatarStyle: `top:${avatarTop}rpx;width:${avatarSize}rpx;height:${avatarSize}rpx;margin-left:${-Math.round(avatarSize / 2)}rpx;background:rgba(0,0,0,${black.toFixed(2)});opacity:${exit.toFixed(2)};`,
     avatarImageStyle: `opacity:${(1 - black).toFixed(2)};`,
     gooTailStyle: `top:${avatarTop - tailHeight + 4}rpx;border-left:${tailHalfWidth}rpx solid transparent;border-right:${tailHalfWidth}rpx solid transparent;border-bottom:${tailHeight}rpx solid #000;opacity:${(black * exit).toFixed(2)};`,
     profileNameStyle: `top:${Math.round(158 - 139 * progress)}rpx;left:${(50 - 48 * progress).toFixed(1)}%;transform:translateX(${nameOffset ? '-' : ''}${nameOffset}%);font-size:${Math.round(35 - 5 * progress)}rpx;`,
-    profileIdStyle: `top:${Math.round(205 - 105 * progress)}rpx;opacity:${(1 - smoothstep(progress / 0.55)).toFixed(2)};`
+    profileIdStyle: `top:${Math.round(205 - 105 * progress)}rpx;opacity:${(1 - smoothstep(progress / 0.55)).toFixed(2)};`,
+    showProfileActions: progress < 0.6,
+    profileActionsStyle: `opacity:${actionsOpacity.toFixed(2)};transform:translateY(${-Math.round(20 * progress)}rpx);`
   };
 }
 
 Page({
-  data: { member: {}, avatar: '/static/favicon.png', nicknameInput: '', showNick: false, saving: false, topInset: profileInset, profileProgress: 0, profileSettling: false, ...profileLayout(0) },
+  data: { member: {}, displayMemberId: '', avatar: '/static/favicon.png', nicknameInput: '', showNick: false, saving: false, topInset: profileInset, profileProgress: 0, profileSettling: false, ...profileLayout(0) },
   onShow() {
     const tabBar = this.getTabBar && this.getTabBar();
     if (tabBar && tabBar.data.selected !== 2) tabBar.setData({ selected: 2 });
@@ -36,7 +39,9 @@ Page({
     this.memberLoading = true;
     try {
       const member = await getMemberInfo() || {};
-      this.setData({ member, avatar: member.avatar || '/static/favicon.png' });
+      const memberId = Number(member.id);
+      const displayMemberId = Number.isSafeInteger(memberId) && memberId > 0 ? memberId + 10087 : '';
+      this.setData({ member, displayMemberId, avatar: member.avatar || '/static/favicon.png' });
       this.lastMemberLoadedAt = Date.now();
     } catch (_) {}
     finally { this.memberLoading = false; }

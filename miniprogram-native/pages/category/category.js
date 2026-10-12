@@ -31,7 +31,7 @@ Page({
     const version = this.requestVersion || 0;
     this.setData({ loading: true });
     const categoriesRequest = getCategories().then(items => orderCategories(items || [])).catch(() => []);
-    const articlesRequest = getArticleList({ page: 1, limit: 10 }).catch(() => null);
+    const articlesRequest = getArticleList({ page: 1, limit: 10, order: 'latest' }).catch(() => null);
     const [categories, data] = await Promise.all([categoriesRequest, articlesRequest]);
     this.setData({ categories, initializing: false });
     if (version !== (this.requestVersion || 0)) return;
@@ -55,7 +55,7 @@ Page({
     const version = this.requestVersion;
     this.setData({ loading: true });
     try {
-      const params = { page, limit: 10 };
+      const params = { page, limit: 10, order: 'latest' };
       if (categoryId > 0) params.category_id = categoryId;
       const data = await getArticleList(params);
       if (this.data.categoryId !== categoryId || this.requestVersion !== version) return;

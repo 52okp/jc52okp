@@ -17,6 +17,7 @@
 .profile-stage.settling .goo-tail { transition: top .36s cubic-bezier(.2,.75,.25,1), border-width .36s ease, opacity .36s ease; }
 .profile-stage.settling .profile-name { transition: top .36s cubic-bezier(.2,.75,.25,1), left .36s cubic-bezier(.2,.75,.25,1), transform .36s cubic-bezier(.2,.75,.25,1), font-size .36s ease; }
 .profile-stage.settling .profile-id { transition: top .36s cubic-bezier(.2,.75,.25,1), opacity .36s ease; }
+.profile-stage.settling .profile-actions { transition: opacity .22s ease, transform .36s cubic-bezier(.2,.75,.25,1); }
 
 .avatar-shell {
   position: absolute;
@@ -47,29 +48,24 @@
 .goo-tail { position: absolute; left: 50%; z-index: 3; width: 0; height: 0; transform: translateX(-50%); pointer-events: none; }
 .profile-name { position: absolute; z-index: 4; max-width: 90%; overflow: hidden; color: #192437; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
 .profile-id { position: absolute; left: 0; right: 0; overflow: hidden; color: #778397; font-size: 23rpx; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
+.profile-actions { position: absolute; left: 0; right: 0; bottom: 12rpx; display: flex; gap: 16rpx; }
+.profile-action { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 108rpx; padding: 0; margin: 0; border-radius: 26rpx; background: #fff; color: #192437; font-size: 23rpx; line-height: 1.2; }
+.profile-action:active { background: #eaf1ff; }
+.action-camera { position: relative; box-sizing: border-box; width: 38rpx; height: 30rpx; margin: 4rpx 0 10rpx; border: 3rpx solid currentColor; border-radius: 7rpx; }
+.action-camera::before { content: ''; position: absolute; box-sizing: border-box; left: 10rpx; top: 6rpx; width: 12rpx; height: 12rpx; border: 3rpx solid currentColor; border-radius: 50%; }
+.action-camera::after { content: ''; position: absolute; left: 5rpx; top: -8rpx; width: 14rpx; height: 5rpx; border: 3rpx solid currentColor; border-bottom: 0; border-radius: 4rpx 4rpx 0 0; }
+.action-pencil { height: 44rpx; margin-bottom: 1rpx; font-size: 43rpx; line-height: 44rpx; }
 
-.menu-card { overflow: hidden; margin-top: 42rpx; border-radius: 22rpx; background: #fff; }
+.menu-card { overflow: hidden; margin-top: 22rpx; border-radius: 22rpx; background: #fff; }
 .menu-row { display: flex; align-items: center; min-height: 104rpx; padding-left: 26rpx; box-sizing: border-box; }
 .menu-row:active { background: #f7f9fd; }
 .menu-icon {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 52rpx;
-  width: 52rpx;
-  height: 52rpx;
-  margin-right: 22rpx;
-  border-radius: 14rpx;
-  color: #fff;
-  font-size: 32rpx;
-  line-height: 1;
+  display: block;
+  flex: 0 0 48rpx;
+  width: 48rpx;
+  height: 48rpx;
+  margin: 0 24rpx 0 4rpx;
 }
-.menu-icon.history { background: #5bb7ad; font-size: 39rpx; }
-.menu-icon.about { background: #8d9db5; font-size: 32rpx; font-weight: 700; }
-.menu-icon.privacy { background: #6f85c7; }
-.lock-shackle { position: absolute; top: 8rpx; width: 20rpx; height: 18rpx; box-sizing: border-box; border: 4rpx solid #fff; border-bottom: 0; border-radius: 12rpx 12rpx 0 0; }
-.lock-body { position: absolute; bottom: 8rpx; width: 28rpx; height: 23rpx; border-radius: 5rpx; background: #fff; }
 .menu-content {
   display: flex;
   align-items: center;

@@ -17,7 +17,7 @@ class Article extends Base
 {
     /**
      * 文章列表
-     * GET /api/article/list?page=1&limit=10&keyword=&tag=&category_id=&recommend=
+     * GET /api/article/list?page=1&limit=10&keyword=&tag=&category_id=&recommend=&order=latest
      */
     public function list(): Response
     {
@@ -28,6 +28,7 @@ class Article extends Base
         $tag      = trim((string)$req->get('tag', ''));
         $category = intval($req->get('category_id', 0));
         $recommend = $req->get('recommend', '');
+        $order = (string)$req->get('order', '');
 
         $query = ArticleModel::mk()
             ->where('is_deleted', 0)
@@ -39,7 +40,7 @@ class Article extends Base
         if ($category > 0) $query->where('category_id', $category);
         if ($recommend !== '') $query->where('is_recommend', 1);
 
-        $res = $query->order('sort desc,id desc')
+        $res = $query->order($order === 'latest' ? 'create_at desc,id desc' : 'sort desc,id desc')
             ->field('id,title,cover,tags,summary,num_read,category_id,source_type,create_at')
             ->paginate(['list_rows' => $limit, 'page' => $page]);
 

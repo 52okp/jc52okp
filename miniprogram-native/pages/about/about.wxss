@@ -3,21 +3,15 @@
 .brand image { width:126rpx; height:126rpx; border-radius:30rpx; display:block; margin:0 auto 18rpx; }
 .brand-name { font-size:38rpx; font-weight:850; }
 .brand-desc { color:#8291aa; font-size:23rpx; margin-top:8rpx; font-weight:400; }
-.menu { padding:0 28rpx; }
-.menu view,.menu button { min-height:96rpx; display:flex; align-items:center; justify-content:space-between; padding:0; border-bottom:1rpx solid #e9eef7; box-sizing:border-box; }
-.menu view:last-child { border:0; }
-.menu button { width:100%; margin:0; background:transparent; text-align:left; font-size:28rpx; line-height:normal; border-radius:0; }
-.arrow { color:#9aa8bd; font-size:38rpx; }
-.version { text-align:center; color:#9aa8bb; font-size:21rpx; margin-top:28rpx; }
-.mask { position:fixed; inset:0; z-index:9; background:rgba(20,38,74,.42); display:flex; align-items:center; justify-content:center; }
-.dialog { width:610rpx; text-align:center; margin:0; padding:34rpx; }
-.heading { font-size:32rpx; font-weight:800; margin-bottom:22rpx; }
-.follow-list { max-height:60vh; }
-.follow-list-scrollable { height:54vh; }
+.follow-section { text-align:center; }
+.heading { font-size:30rpx; font-weight:700; text-align:left; margin-bottom:22rpx; }
 .follow-account { margin:0 0 18rpx; padding:20rpx; border-radius:20rpx; background:#f5f8fd; }
 .follow-account:last-child { margin-bottom:0; }
 .follow-title { color:#192437; font-size:28rpx; font-weight:700; }
 .follow-image { width:330rpx; max-width:100%; display:block; margin:16rpx auto; }
 .follow-description { color:#778397; font-size:24rpx; line-height:1.6; white-space:pre-wrap; }
 .follow-empty { color:#778397; font-size:25rpx; padding:28rpx 0; }
-.dialog button { margin-top:24rpx; border-radius:99rpx; background:#eaf1ff; color:#376ffa; }
+.menu { padding:0 28rpx; }
+.menu button,.menu-link { width:100%; min-height:96rpx; display:flex; align-items:center; justify-content:space-between; box-sizing:border-box; padding:0; margin:0; background:transparent; text-align:left; font-size:28rpx; line-height:normal; border-radius:0; }
+.menu button { border-bottom:1rpx solid #e9eef7; }
+.arrow { color:#9aa8bd; font-size:38rpx; }
