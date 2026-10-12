@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\admin\controller;
 
+use app\service\WxappSetting;
 use think\admin\Controller;
 
 /**
@@ -21,6 +22,8 @@ class Setting extends Controller
     {
         if ($this->request->isGet()) {
             $this->title = '小程序设置';
+            $this->followText = WxappSetting::readText('wxapp.follow_text');
+            $this->privacyContent = WxappSetting::readText('wxapp.privacy_content');
             $this->fetch();
         } else {
             $allowed = [
@@ -44,7 +47,13 @@ class Setting extends Controller
                 $changes[$key] = $value;
             }
             if (!$changes) $this->error('没有可保存的设置！');
-            foreach ($changes as $key => $value) sysconf($key, $value);
+            foreach ($changes as $key => $value) {
+                if ($key === 'wxapp.follow_image') {
+                    sysconf($key, $value);
+                } else {
+                    WxappSetting::saveText($key, $value);
+                }
+            }
             sysoplog('小程序设置', '修改小程序设置');
             $this->success('保存成功！');
         }

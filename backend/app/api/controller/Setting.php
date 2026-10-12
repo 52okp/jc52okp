@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\api\controller;
 
+use app\service\WxappSetting;
 use think\Response;
 
 /**
@@ -19,8 +20,8 @@ class Setting extends Base
     {
         return $this->ok([
             'follow_image'    => (string)sysconf('wxapp.follow_image'),
-            'follow_text'     => (string)sysconf('wxapp.follow_text'),
-            'privacy_content' => (string)sysconf('wxapp.privacy_content'),
+            'follow_text'     => WxappSetting::readText('wxapp.follow_text'),
+            'privacy_content' => WxappSetting::readText('wxapp.privacy_content'),
         ]);
     }
 }

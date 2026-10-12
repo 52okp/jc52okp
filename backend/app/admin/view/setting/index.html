@@ -16,7 +16,7 @@
                     <div class="layui-col-xs9">
                         <label class="block relative">
                             <span class="help-label"><b>关注说明文字</b>Follow Text</span>
-                            <textarea name="wxapp.follow_text" placeholder="例如：长按识别二维码关注公众号，获取更多教程" class="layui-textarea">{:sysconf('wxapp.follow_text')}</textarea>
+                            <textarea name="wxapp.follow_text" placeholder="例如：长按识别二维码关注公众号，获取更多教程" class="layui-textarea">{$followText}</textarea>
                         </label>
                     </div>
                 </div>
@@ -26,7 +26,7 @@
                 <legend><b class="layui-badge think-bg-violet">隐私政策</b></legend>
                 <label class="block relative">
                     <span class="help-label"><b>隐私政策内容</b>Privacy</span>
-                    <textarea name="wxapp.privacy_content" placeholder="在此填写隐私政策全文，支持换行" class="layui-textarea" style="min-height:300px">{:sysconf('wxapp.privacy_content')}</textarea>
+                    <textarea name="wxapp.privacy_content" placeholder="在此填写隐私政策全文，支持换行" class="layui-textarea" style="min-height:300px">{$privacyContent}</textarea>
                 </label>
             </fieldset>
 
