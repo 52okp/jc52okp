@@ -1,13 +1,22 @@
 <view class="category-screen">
-  <view class="category-header" style="padding-top:{{topInset}}px;"><view class="header-title">分类</view><view class="header-subtitle">找到适合你的 AI 学习内容</view></view>
+  <view class="category-header" style="padding-top:{{topInset}}px;">
+    <view class="header-orbit orbit-one"></view><view class="header-orbit orbit-two"></view>
+    <view class="header-title">分类</view>
+    <view class="header-subtitle">找到适合你的 AI 学习内容</view>
+  </view>
   <view class="category-tabs">
+    <view class="tabs-caption"><view class="caption-mark"></view>按主题浏览</view>
     <view class="category-tab {{categoryId === 0 ? 'active' : ''}}" bindtap="selectAll">全部</view>
     <view wx:for="{{categories}}" wx:key="id" class="category-tab {{categoryId === item.id ? 'active' : ''}}" data-index="{{index}}" bindtap="select">{{item.name}}</view>
   </view>
   <scroll-view scroll-y class="category-list" lower-threshold="100" bindscrolltolower="more">
+    <view class="list-heading">
+      <view class="list-heading-copy"><view class="list-eyebrow">教程文章</view><view class="list-title">{{categoryName || '全部教程'}}</view></view>
+      <view wx:if="{{!loading && !initializing}}" class="list-total">共 {{total}} 篇</view>
+    </view>
     <article-card wx:for="{{list}}" wx:key="id" article="{{item}}" category-name="{{item.categoryName || categoryName}}" bindopen="openArticle"/>
     <view wx:if="{{loading || initializing}}" class="result-empty">加载中…</view>
     <view wx:elif="{{!list.length}}" class="result-empty">该分类暂无内容</view>
-    <view wx:elif="{{list.length >= total}}" class="result-end">看完啦 看看其他文章吧</view>
+    <view wx:elif="{{list.length >= total}}" class="result-end"><view class="end-rule"></view><text>看完啦 看看其他文章吧</text><view class="end-rule"></view></view>
   </scroll-view>
 </view>
