@@ -9,6 +9,10 @@ test('floating tab bar keeps the three existing routes and switches to the selec
   assert.deepEqual(app.tabBar.list.map(item => item.pagePath), [
     'pages/home/home', 'pages/category/category', 'pages/my/my'
   ]);
+  for (const item of app.tabBar.list) {
+    assert.equal(item.iconPath, item.selectedIconPath);
+    assert.ok(fs.existsSync(path.join(__dirname, '..', item.iconPath)));
+  }
 
   let definition;
   const navigations = [];

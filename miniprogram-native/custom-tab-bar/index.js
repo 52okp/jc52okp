@@ -1,7 +1,7 @@
 const tabs = [
-  { pagePath: '/pages/home/home', text: '首页', iconPath: '/static/tabbar/home.png', selectedIconPath: '/static/tabbar/home-on.png' },
-  { pagePath: '/pages/category/category', text: '分类', iconPath: '/static/tabbar/cat.png', selectedIconPath: '/static/tabbar/cat-on.png' },
-  { pagePath: '/pages/my/my', text: '我的', iconPath: '/static/tabbar/my.png', selectedIconPath: '/static/tabbar/my-on.png' }
+  { pagePath: '/pages/home/home', text: '首页', iconPath: '/static/tabbar/home-outline.png' },
+  { pagePath: '/pages/category/category', text: '分类', iconPath: '/static/tabbar/category-outline.png' },
+  { pagePath: '/pages/my/my', text: '我的', iconPath: '/static/tabbar/my-outline.png' }
 ];
 
 Component({

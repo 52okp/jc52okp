@@ -2,7 +2,7 @@
   <view class="tabbar-inner">
     <view class="tab-indicator at-{{selected}}"></view>
     <view wx:for="{{tabs}}" wx:key="pagePath" class="tab-item {{selected === index ? 'active' : ''}}" data-index="{{index}}" bindtap="switchTab">
-      <image class="tab-icon" src="{{selected === index ? item.selectedIconPath : item.iconPath}}" mode="aspectFit"/>
+      <image class="tab-icon" src="{{item.iconPath}}" mode="aspectFit"/>
       <text>{{item.text}}</text>
     </view>
   </view>
