@@ -40,4 +40,3 @@ foreach ([
 }
 
 echo "Small-program setting form normalization passed\n";
-
