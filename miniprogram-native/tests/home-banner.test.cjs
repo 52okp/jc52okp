@@ -110,9 +110,17 @@ test('automatic rotation stops when the page is hidden', async () => {
   assert.equal(page.bannerTimer, null);
 });
 
-test('pull refresh holds the indicator until the home request settles', async () => {
+test('pull refresh contracts the fixed upper-left title and restores it after settling', async () => {
   const home = { banners: [], default_banner_background: '/static/hero/background.webp', recommend: [{ id: 12 }] };
   const { page } = mount(home);
+  page.onRefresherPulling({ detail: { dy: 22 } });
+  assert.equal(page.data.brandContracted, true);
+  page.onRefresherRestore();
+  assert.equal(page.data.brandContracted, false);
+  page.onHomeScroll({ detail: { scrollTop: 100 } });
+  assert.equal(page.data.headerHidden, true);
+  page.onHomeScroll({ detail: { scrollTop: 0 } });
+  assert.equal(page.data.headerHidden, false);
   let respond;
   let requests = 0;
   wx.request = options => {
@@ -121,11 +129,14 @@ test('pull refresh holds the indicator until the home request settles', async ()
   };
   const refresh = page.onRefresh();
   assert.equal(page.data.refreshing, true);
+  assert.equal(page.data.brandContracted, true);
   await page.onRefresh();
   assert.equal(requests, 1, 'a second pull must not start another home request');
   respond();
   await refresh;
   assert.equal(page.data.refreshing, false);
+  page.onRefresherRestore();
+  assert.equal(page.data.brandContracted, false);
   assert.deepEqual(page.data.articles.map(article => article.id), [12]);
   wx.request = options => options.fail(new Error('offline'));
   await page.onRefresh();
@@ -134,7 +145,11 @@ test('pull refresh holds the indicator until the home request settles', async ()
   const miniRoot = path.resolve(__dirname, '..');
   const markup = fs.readFileSync(path.join(miniRoot, 'pages/home/home.wxml'), 'utf8');
   const config = JSON.parse(fs.readFileSync(path.join(miniRoot, 'pages/home/home.json'), 'utf8'));
-  assert.match(markup, /slot="refresher"/);
+  assert.match(markup, /class="hero-brand-fixed/);
+  assert.match(markup, /<text>AI<\/text><text class="brand-suffix">教程<\/text>/);
+  assert.match(markup, /bindrefresherpulling="onRefresherPulling"/);
+  assert.match(markup, /bindrefresherrestore="onRefresherRestore"/);
+  assert.doesNotMatch(markup, /slot="refresher"/);
   assert.match(markup, /refresher-triggered="\{\{refreshing\}\}"/);
   assert.notEqual(config.enablePullDownRefresh, true);
 });

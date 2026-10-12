@@ -1,16 +1,18 @@
 .home-scroll { height:100vh; background:#F5F8FD; }
-.refresh-panel { width:100%; height:200rpx; padding-top:68rpx; box-sizing:border-box; display:flex; align-items:center; justify-content:center; }
-.refresh-bubble { width:70rpx; height:70rpx; display:flex; align-items:center; justify-content:center; border-radius:22rpx; background:#fff; color:#778397; font-size:54rpx; line-height:1; box-shadow:0 5rpx 14rpx rgba(25,36,55,.13); }
-.refresh-bubble.spinning { animation:refresh-spin .8s linear infinite; }
-@keyframes refresh-spin { to { transform:rotate(360deg); } }
+.hero-brand-fixed { position:fixed; z-index:20; left:0; width:58%; padding:8rpx 0 0 32rpx; box-sizing:border-box; color:#fff; text-shadow:0 2rpx 8rpx rgba(28,75,149,.18); pointer-events:none; transition:opacity .18s ease,color .18s ease; }
+.hero-brand-fixed.hidden { opacity:0; }
+.hero-brand-fixed.contracted { color:#3478F6; text-shadow:none; }
+.brand-suffix { display:inline-block; max-width:2.2em; overflow:hidden; white-space:nowrap; vertical-align:bottom; transition:max-width .22s ease,opacity .18s ease,transform .22s ease; }
+.contracted .brand-suffix { max-width:0; opacity:0; transform:translateX(-12rpx); }
+.contracted .brand-subtitle { opacity:0; }
 .home-screen { min-height:100vh; background:#F5F8FD; padding-bottom:40rpx; }
 .hero-stage { height:630rpx; position:relative; box-sizing:border-box; background:linear-gradient(145deg,#3478F6,#8bb8fa); }
 .hero-background { position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; }
 .hero-veil { position:absolute; inset:0; z-index:2; background:linear-gradient(180deg,rgba(52,120,246,.28) 0%,rgba(116,172,248,.06) 70%,rgba(245,248,253,.25) 100%); pointer-events:none; }
 .image-hero .hero-background { z-index:3; }
-.hero-brand { position:relative; z-index:5; width:58%; padding:8rpx 0 0 32rpx; box-sizing:border-box; color:#fff; text-shadow:0 2rpx 8rpx rgba(28,75,149,.18); }
+.hero-brand-space { height:110rpx; }
 .brand-title { font-size:52rpx; line-height:1.2; font-weight:800; }
-.brand-subtitle { font-size:24rpx; margin-top:8rpx; white-space:nowrap; }
+.brand-subtitle { font-size:24rpx; margin-top:8rpx; white-space:nowrap; transition:opacity .18s ease; }
 .hero-card { position:relative; z-index:4; height:282rpx; margin:46rpx 28rpx 0; }
 .hero-plate { position:absolute; inset:0; z-index:0; border-radius:48rpx 48rpx 0 0; background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(255,255,255,.88) 72%,rgba(255,255,255,.6) 88%,rgba(255,255,255,0) 100%); }
 .image-hero .hero-plate { background:linear-gradient(90deg,rgba(255,255,255,.94) 0%,rgba(255,255,255,.83) 45%,rgba(255,255,255,.12) 76%,rgba(255,255,255,0) 100%); }

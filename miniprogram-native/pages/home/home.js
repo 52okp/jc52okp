@@ -2,16 +2,28 @@ const { BASE_URL, getHome, shareImageUrl } = require('../../common/api');
 const { topInset, backendImageUrl } = require('../../common/ui');
 const FALLBACK_BANNER = { id: 0, title: '', backgroundImage: '', characterImage: '', articleId: 0 };
 Page({
-  data: { banners: [FALLBACK_BANNER], activeBanner: FALLBACK_BANNER, defaultBackground: '', bannerIndex: 0, keyword: '', articles: [], loading: false, refreshing: false, topInset: topInset() },
+  data: { banners: [FALLBACK_BANNER], activeBanner: FALLBACK_BANNER, defaultBackground: '', bannerIndex: 0, keyword: '', articles: [], loading: false, refreshing: false, brandContracted: false, headerHidden: false, topInset: topInset() },
   onShow() { this.pageVisible = true; this.loadHome(); },
-  onHide() { this.pageVisible = false; this.stopBannerTimer(); },
+  onHide() { this.pageVisible = false; this.stopBannerTimer(); this.setData({ brandContracted: false }); },
   onUnload() { this.pageVisible = false; this.stopBannerTimer(); this.loadVersion = (this.loadVersion || 0) + 1; },
   async onRefresh() {
     if (this.data.refreshing) return;
     this.stopBannerTimer();
-    this.setData({ refreshing: true });
+    this.setData({ refreshing: true, brandContracted: true });
     try { await this.loadHome(); }
     finally { this.setData({ refreshing: false }); }
+  },
+  onRefresherPulling(event) {
+    const distance = Number(event.detail && event.detail.dy) || 0;
+    if (distance > 14 && !this.data.brandContracted) this.setData({ brandContracted: true });
+    else if (distance < 6 && this.data.brandContracted && !this.data.refreshing) this.setData({ brandContracted: false });
+  },
+  onRefresherRestore() {
+    if (this.data.brandContracted) this.setData({ brandContracted: false });
+  },
+  onHomeScroll(event) {
+    const hidden = Number(event.detail && event.detail.scrollTop) > 50;
+    if (hidden !== this.data.headerHidden) this.setData({ headerHidden: hidden });
   },
   async loadHome() {
     const version = (this.loadVersion || 0) + 1;

@@ -1,10 +1,13 @@
-<scroll-view class="home-scroll" scroll-y="{{true}}" enable-back-to-top="{{true}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" refresher-threshold="{{100}}" refresher-default-style="none" refresher-background="#F5F8FD" bindrefresherrefresh="onRefresh">
-  <view slot="refresher" class="refresh-panel"><view class="refresh-bubble {{refreshing ? 'spinning' : ''}}">↻</view></view>
+<view class="hero-brand-fixed {{brandContracted ? 'contracted' : ''}} {{headerHidden ? 'hidden' : ''}}" style="top:{{topInset}}px;">
+  <view class="brand-title"><text>AI</text><text class="brand-suffix">教程</text></view>
+  <view class="brand-subtitle">发现更好的 AI 创作方式</view>
+</view>
+<scroll-view class="home-scroll" scroll-y="{{true}}" enable-back-to-top="{{true}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" refresher-threshold="{{100}}" refresher-default-style="black" refresher-background="#F5F8FD" bindscroll="onHomeScroll" bindrefresherpulling="onRefresherPulling" bindrefresherrefresh="onRefresh" bindrefresherrestore="onRefresherRestore" bindrefresherabort="onRefresherRestore">
   <view class="home-screen">
   <view class="hero-stage {{activeBanner.characterImage ? 'layered-hero' : 'image-hero'}}" style="padding-top:{{topInset}}px;" bindtouchstart="heroTouchStart" bindtouchend="heroTouchEnd" bindtouchcancel="heroTouchCancel" bindtap="openHero">
     <image wx:if="{{activeBanner.backgroundImage}}" class="hero-background" src="{{activeBanner.backgroundImage}}" mode="aspectFill" webp="{{true}}" binderror="heroError"/>
     <view class="hero-veil"></view>
-    <view class="hero-brand"><view class="brand-title">AI教程</view><view class="brand-subtitle">发现更好的 AI 创作方式</view></view>
+    <view class="hero-brand-space"></view>
     <view class="hero-card">
       <view class="hero-plate"></view>
       <view wx:if="{{activeBanner.characterImage}}" class="hero-character-clip"><image class="hero-character" src="{{activeBanner.characterImage}}" mode="aspectFit" webp="{{true}}" binderror="characterError"/></view>
