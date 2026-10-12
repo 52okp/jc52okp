@@ -1,11 +1,25 @@
 const { getCategories, getArticleList } = require('../../common/api');
 const { topInset } = require('../../common/ui');
+
+function orderCategories(items) {
+  const ordered = items.slice();
+  const isTools = item => /工具下载/.test(item.name || '');
+  if (!ordered.some(isTools)) return ordered;
+  const moved = [];
+  [/stable\s*diffusion/i, /comfy\s*ui/i].forEach(pattern => {
+    const index = ordered.findIndex(item => pattern.test(item.name || ''));
+    if (index >= 0) moved.push(...ordered.splice(index, 1));
+  });
+  ordered.splice(ordered.findIndex(isTools), 0, ...moved);
+  return ordered;
+}
+
 Page({
   data: { categories: [], categoryId: 0, categoryName: '', list: [], page: 1, total: 0, loading: false, initializing: true, topInset: topInset() },
   onLoad() { this.init(); },
   async init() {
     try {
-      const categories = await getCategories() || [];
+      const categories = orderCategories(await getCategories() || []);
       this.setData({ categories, initializing: false });
     } catch (_) { this.setData({ initializing: false }); }
     return this.selectAll();

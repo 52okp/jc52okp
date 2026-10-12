@@ -6,7 +6,11 @@ const path = require('node:path');
 function mount() {
   let definition;
   const requests = [];
-  const categories = [{ id: 2, name: '基础入门' }, { id: 7, name: 'ComfyUI' }];
+  const categories = [
+    { id: 2, name: '基础入门' }, { id: 3, name: '进阶教程' },
+    { id: 4, name: '工具下载' }, { id: 5, name: 'GitHub项目' },
+    { id: 6, name: 'Stable Diffusion教程' }, { id: 7, name: 'ComfyUI' }
+  ];
   global.Page = value => { definition = value; };
   global.wx = {
     getSystemInfoSync: () => ({ statusBarHeight: 24 }),
@@ -44,12 +48,13 @@ test('all chip loads real articles without category filter and category chips ke
   const { page, requests } = mount();
   await page.init();
   assert.equal(page.data.categoryId, 0);
+  assert.deepEqual(page.data.categories.map(item => item.id), [2, 3, 6, 7, 4, 5]);
   assert.equal(page.data.list.length, 2);
   assert.equal(page.data.list[0].categoryName, '基础入门');
   assert.equal(page.data.list[1].categoryName, 'ComfyUI');
   assert.doesNotMatch(requests[1], /category_id=/);
 
-  await page.select({ currentTarget: { dataset: { index: 1 } } });
+  await page.select({ currentTarget: { dataset: { index: 3 } } });
   assert.equal(page.data.categoryId, 7);
   assert.equal(page.data.list[0].id, 8);
   assert.match(requests[2], /category_id=7/);
