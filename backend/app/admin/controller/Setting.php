@@ -72,4 +72,3 @@ class Setting extends Controller
         return $post;
     }
 }
-
