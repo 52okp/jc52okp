@@ -30,7 +30,7 @@
                 },
                 {
                     field: 'character_image', title: '人物 PNG', width: 110, align: 'center', templet: function (d) {
-                        if (!d.character_image) return '默认人物';
+                        if (!d.character_image) return '仅头图';
                         return layui.laytpl('<div class="headimg" style="width:72px;height:54px" data-tips-image data-lazy-src="{{d.character_image}}"></div>').render(d);
                     }
                 },

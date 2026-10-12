@@ -23,6 +23,7 @@
             sort: {field: 'sort desc,id', type: 'desc'},
             cols: [[
                 {checkbox: true, fixed: true},
+                {field: 'id', title: '文章ID', width: 96, align: 'center', sort: true, fixed: 'left'},
                 {field: 'sort', title: '排序', width: 90, align: 'center', sort: true, templet: '#SortInputTpl'},
                 {
                     field: 'cover', title: '封面', width: 80, align: 'center', templet: function (d) {

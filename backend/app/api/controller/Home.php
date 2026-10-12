@@ -48,6 +48,7 @@ class Home extends Base
 
         return $this->ok([
             'banners'    => $banners,
+            'default_banner_background' => '/static/hero/background.webp',
             'categories' => $categories,
             'recommend'  => $recommend,
         ]);
