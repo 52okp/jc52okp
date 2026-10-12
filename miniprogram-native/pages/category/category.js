@@ -7,26 +7,35 @@ Page({
     try {
       const categories = await getCategories() || [];
       this.setData({ categories, initializing: false });
-      if (categories.length) this.select({ currentTarget: { dataset: { index: 0 } } });
     } catch (_) { this.setData({ initializing: false }); }
+    return this.selectAll();
   },
+  selectAll() { return this.selectCategory(0, ''); },
   select(event) {
     const item = this.data.categories[event.currentTarget.dataset.index];
     if (!item) return;
+    return this.selectCategory(item.id, item.name);
+  },
+  selectCategory(categoryId, categoryName) {
     this.requestVersion = (this.requestVersion || 0) + 1;
-    this.setData({ categoryId: item.id, categoryName: item.name, list: [], page: 1, total: 0, loading: false });
-    this.load();
+    this.setData({ categoryId, categoryName, list: [], page: 1, total: 0, loading: false });
+    return this.load();
   },
   async load() {
-    if (this.data.loading || !this.data.categoryId) return;
+    if (this.data.loading) return;
     const categoryId = this.data.categoryId;
     const page = this.data.page;
     const version = this.requestVersion;
     this.setData({ loading: true });
     try {
-      const data = await getArticleList({ category_id: categoryId, page, limit: 10 });
+      const params = { page, limit: 10 };
+      if (categoryId > 0) params.category_id = categoryId;
+      const data = await getArticleList(params);
       if (this.data.categoryId !== categoryId || this.requestVersion !== version) return;
-      this.setData({ list: page === 1 ? data.list || [] : this.data.list.concat(data.list || []), total: data.total || 0 });
+      const categoryNames = {};
+      this.data.categories.forEach(item => { categoryNames[item.id] = item.name; });
+      const articles = (data.list || []).map(item => ({ ...item, categoryName: categoryNames[item.category_id] || '' }));
+      this.setData({ list: page === 1 ? articles : this.data.list.concat(articles), total: data.total || 0 });
     } catch (_) {} finally { if (this.requestVersion === version) this.setData({ loading: false }); }
   },
   more() { if (!this.data.loading && this.data.list.length < this.data.total) this.setData({ page: this.data.page + 1 }, () => this.load()); },
