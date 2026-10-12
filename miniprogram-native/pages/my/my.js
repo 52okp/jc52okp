@@ -1,24 +1,26 @@
 const { getMemberInfo, updateProfile, uploadAvatar } = require('../../common/api');
 const { topInset } = require('../../common/ui');
 const profileInset = topInset() + 34;
-const collapseDistance = 90;
+const collapseDistance = 140;
 
 function profileLayout(progress) {
   const clamp = value => Math.max(0, Math.min(1, value));
+  const smoothstep = value => { const t = clamp(value); return t * t * (3 - 2 * t); };
   const height = Math.round(260 - 182 * progress);
   const avatarSize = Math.round(144 - 116 * progress);
   const avatarTop = Math.round(2 - 64 * progress);
-  const black = clamp((progress - 0.45) / 0.35);
-  const exit = clamp((1 - progress) / 0.15);
+  const black = smoothstep((progress - 0.38) / 0.5);
+  const exit = 1 - smoothstep((progress - 0.86) / 0.14);
   const tailHeight = Math.round(18 * black);
   const tailHalfWidth = Math.round(6 * black);
+  const nameOffset = Math.round(50 * (1 - progress));
   return {
     profileStyle: `top:${profileInset}px;height:${height}rpx;`,
     avatarStyle: `top:${avatarTop}rpx;width:${avatarSize}rpx;height:${avatarSize}rpx;margin-left:${-Math.round(avatarSize / 2)}rpx;background:rgba(0,0,0,${black.toFixed(2)});opacity:${exit.toFixed(2)};`,
     avatarImageStyle: `opacity:${(1 - black).toFixed(2)};`,
     gooTailStyle: `top:${avatarTop - tailHeight + 4}rpx;border-left:${tailHalfWidth}rpx solid transparent;border-right:${tailHalfWidth}rpx solid transparent;border-bottom:${tailHeight}rpx solid #000;opacity:${(black * exit).toFixed(2)};`,
-    expandedTextStyle: `opacity:${clamp(1 - progress * 2).toFixed(2)};transform:translateY(${-Math.round(38 * progress)}rpx);`,
-    compactTextStyle: `opacity:${clamp((progress - 0.4) / 0.35).toFixed(2)};`
+    profileNameStyle: `top:${Math.round(158 - 139 * progress)}rpx;left:${(50 - 48 * progress).toFixed(1)}%;transform:translateX(${nameOffset ? '-' : ''}${nameOffset}%);font-size:${Math.round(35 - 5 * progress)}rpx;`,
+    profileIdStyle: `top:${Math.round(205 - 105 * progress)}rpx;opacity:${(1 - smoothstep(progress / 0.55)).toFixed(2)};`
   };
 }
 
@@ -54,7 +56,7 @@ Page({
     if (Math.abs(dy) < 8 || Math.abs(dy) < Math.abs(dx) * 1.2) return;
     gesture.moved = true;
     const progress = Math.max(0, Math.min(1, gesture.progress - dy / collapseDistance));
-    if (Math.abs(progress - this.data.profileProgress) < 0.03) return;
+    if (Math.abs(progress - this.data.profileProgress) < 0.01) return;
     this.setData({ profileProgress: progress, ...profileLayout(progress) });
   },
   profileTouchEnd() {

@@ -5,11 +5,8 @@
       <button disabled="{{profileProgress >= 1}}" open-type="chooseAvatar" bindchooseavatar="chooseAvatar" class="avatar-button" aria-label="更换头像"></button>
     </view>
     <view class="goo-tail" style="{{gooTailStyle}}"></view>
-    <view class="profile-expanded" style="{{expandedTextStyle}}" bindtap="openNick">
-      <view class="profile-name">{{member.nickname || '微信用户'}}</view>
-      <view class="profile-id">{{member.id ? 'ID: ' + member.id : '点击设置昵称'}}</view>
-    </view>
-    <view class="profile-compact" style="{{compactTextStyle}}" bindtap="openNick">{{member.nickname || '微信用户'}}</view>
+    <view class="profile-name" style="{{profileNameStyle}}" bindtap="openNick">{{member.nickname || '微信用户'}}</view>
+    <view class="profile-id" style="{{profileIdStyle}}">{{member.id ? 'ID: ' + member.id : '点击设置昵称'}}</view>
   </view>
 
   <view class="section-label">我的内容</view>

@@ -11,12 +11,12 @@
   box-sizing: border-box;
   background: #F5F8FD;
 }
-.profile-stage.settling { transition: height .22s ease-out; }
-.profile-stage.settling .avatar-shell { transition: top .22s ease-out, width .22s ease-out, height .22s ease-out, margin-left .22s ease-out, opacity .22s ease-out, background .22s ease-out; }
-.profile-stage.settling .avatar { transition: opacity .22s ease-out; }
-.profile-stage.settling .goo-tail { transition: top .22s ease-out, border-width .22s ease-out, opacity .22s ease-out; }
-.profile-stage.settling .profile-expanded { transition: opacity .22s ease-out, transform .22s ease-out; }
-.profile-stage.settling .profile-compact { transition: opacity .22s ease-out; }
+.profile-stage.settling { transition: height .36s cubic-bezier(.2,.75,.25,1); }
+.profile-stage.settling .avatar-shell { transition: top .36s cubic-bezier(.2,.75,.25,1), width .36s cubic-bezier(.2,.75,.25,1), height .36s cubic-bezier(.2,.75,.25,1), margin-left .36s cubic-bezier(.2,.75,.25,1), opacity .36s ease, background .36s ease; }
+.profile-stage.settling .avatar { transition: opacity .36s ease; }
+.profile-stage.settling .goo-tail { transition: top .36s cubic-bezier(.2,.75,.25,1), border-width .36s ease, opacity .36s ease; }
+.profile-stage.settling .profile-name { transition: top .36s cubic-bezier(.2,.75,.25,1), left .36s cubic-bezier(.2,.75,.25,1), transform .36s cubic-bezier(.2,.75,.25,1), font-size .36s ease; }
+.profile-stage.settling .profile-id { transition: top .36s cubic-bezier(.2,.75,.25,1), opacity .36s ease; }
 
 .avatar-shell {
   position: absolute;
@@ -45,10 +45,8 @@
 }
 
 .goo-tail { position: absolute; left: 50%; z-index: 3; width: 0; height: 0; transform: translateX(-50%); pointer-events: none; }
-.profile-expanded { position: absolute; top: 158rpx; left: 0; right: 0; text-align: center; }
-.profile-name { overflow: hidden; color: #192437; font-size: 35rpx; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
-.profile-id { overflow: hidden; margin-top: 8rpx; color: #778397; font-size: 23rpx; white-space: nowrap; text-overflow: ellipsis; }
-.profile-compact { position: absolute; top: 19rpx; left: 10rpx; right: 10rpx; overflow: hidden; color: #192437; font-size: 30rpx; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.profile-name { position: absolute; z-index: 4; max-width: 90%; overflow: hidden; color: #192437; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.profile-id { position: absolute; left: 0; right: 0; overflow: hidden; color: #778397; font-size: 23rpx; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
 
 .section-label {
   margin: 42rpx 10rpx 14rpx;
