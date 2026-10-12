@@ -9,15 +9,10 @@
     <view class="profile-id" style="{{profileIdStyle}}">{{member.id ? 'ID: ' + member.id : '点击设置昵称'}}</view>
   </view>
 
-  <view class="section-label">我的内容</view>
   <view class="menu-card">
     <view class="menu-row" data-url="/pages/history/history" bindtap="go">
       <view class="menu-icon history">◷</view><view class="menu-content"><text>浏览历史</text><text class="chevron">›</text></view>
     </view>
-  </view>
-
-  <view class="section-label">应用信息</view>
-  <view class="menu-card">
     <view class="menu-row" data-url="/pages/about/about" bindtap="go">
       <view class="menu-icon about">i</view><view class="menu-content"><text>关于我们</text><text class="chevron">›</text></view>
     </view>

@@ -48,14 +48,7 @@
 .profile-name { position: absolute; z-index: 4; max-width: 90%; overflow: hidden; color: #192437; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
 .profile-id { position: absolute; left: 0; right: 0; overflow: hidden; color: #778397; font-size: 23rpx; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
 
-.section-label {
-  margin: 42rpx 10rpx 14rpx;
-  color: #778397;
-  font-size: 24rpx;
-  font-weight: 500;
-}
-
-.menu-card { overflow: hidden; border-radius: 22rpx; background: #fff; }
+.menu-card { overflow: hidden; margin-top: 42rpx; border-radius: 22rpx; background: #fff; }
 .menu-row { display: flex; align-items: center; min-height: 104rpx; padding-left: 26rpx; box-sizing: border-box; }
 .menu-row:active { background: #f7f9fd; }
 .menu-icon {
