@@ -2,7 +2,7 @@
   <view class="brand-title"><text>AI</text><text class="brand-suffix">教程</text></view>
   <view class="brand-subtitle">发现更好的 AI 创作方式</view>
 </view>
-<scroll-view class="home-scroll" scroll-y="{{true}}" enable-back-to-top="{{true}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" refresher-threshold="{{100}}" refresher-default-style="black" refresher-background="#F5F8FD" bindscroll="onHomeScroll" bindrefresherpulling="onRefresherPulling" bindrefresherrefresh="onRefresh" bindrefresherrestore="onRefresherRestore" bindrefresherabort="onRefresherRestore">
+<scroll-view class="home-scroll" scroll-y="{{true}}" enable-back-to-top="{{true}}" refresher-enabled="{{true}}" refresher-triggered="{{refreshing}}" refresher-threshold="{{100}}" refresher-default-style="black" refresher-background="#F5F8FD" bindscroll="onHomeScroll" bindscrolltolower="loadMoreArticles" bindrefresherpulling="onRefresherPulling" bindrefresherrefresh="onRefresh" bindrefresherrestore="onRefresherRestore" bindrefresherabort="onRefresherRestore">
   <view class="home-screen">
   <view class="hero-stage {{activeBanner.characterImage ? 'layered-hero' : 'image-hero'}}" style="padding-top:{{topInset}}px;" bindtouchstart="heroTouchStart" bindtouchend="heroTouchEnd" bindtouchcancel="heroTouchCancel" bindtap="openHero">
     <image wx:if="{{activeBanner.backgroundImage}}" class="hero-background" src="{{activeBanner.backgroundImage}}" mode="aspectFill" webp="{{true}}" binderror="heroError"/>
@@ -28,9 +28,12 @@
       <input value="{{keyword}}" bindinput="searchInput" bindconfirm="search" confirm-type="search" placeholder="搜索教程 / 模型 / 工具" placeholder-class="search-placeholder"/>
       <view class="search-go" bindtap="search"><view class="search-arrow"></view></view>
     </view>
-    <view class="section-heading">推荐教程</view>
+    <view class="section-heading">
+      <view class="section-tab {{articleMode === 'recommend' ? 'active' : ''}}" data-mode="recommend" role="button" catchtap="selectArticleMode">推荐</view>
+      <view class="section-tab {{articleMode === 'latest' ? 'active' : ''}}" data-mode="latest" role="button" catchtap="selectArticleMode">最新文章</view>
+    </view>
     <article-card wx:for="{{articles}}" wx:key="id" article="{{item}}" bindopen="openArticle"/>
-    <view wx:if="{{loading}}" class="empty">加载中…</view><view wx:elif="{{!articles.length}}" class="empty">暂无推荐文章</view>
+    <view wx:if="{{articleMode === 'latest' ? latestLoading : loading}}" class="empty">加载中…</view><view wx:elif="{{!articles.length}}" class="empty">{{articleMode === 'latest' ? '暂无最新文章' : '暂无推荐文章'}}</view>
   </view>
   </view>
 </scroll-view>

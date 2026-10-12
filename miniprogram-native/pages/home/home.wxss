@@ -36,4 +36,7 @@
 .search-go { width:64rpx; height:64rpx; border-radius:50%; background:linear-gradient(135deg,#70a5ff,#3976fa); display:flex; align-items:center; justify-content:center; box-shadow:0 4rpx 10rpx rgba(56,112,249,.18); }
 .search-arrow { position:relative; width:30rpx; height:2rpx; border-radius:2rpx; background:#fff; }
 .search-arrow::after { content:''; position:absolute; right:1rpx; top:-5rpx; width:10rpx; height:10rpx; border-top:2rpx solid #fff; border-right:2rpx solid #fff; transform:rotate(45deg); }
-.section-heading { padding:34rpx 4rpx 18rpx; color:#192437; font-size:32rpx; font-weight:800; }
+.section-heading { display:flex; align-items:center; justify-content:center; gap:44rpx; padding:28rpx 4rpx 16rpx; }
+.section-tab { position:relative; padding:8rpx 2rpx 12rpx; color:#778397; font-size:28rpx; font-weight:600; line-height:1.3; }
+.section-tab.active { color:#192437; font-weight:800; }
+.section-tab.active::after { content:''; position:absolute; left:2rpx; right:2rpx; bottom:2rpx; height:5rpx; border-radius:5rpx; background:#3478F6; }

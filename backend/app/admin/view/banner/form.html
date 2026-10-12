@@ -2,7 +2,7 @@
     <div class="layui-card-body padding-left-40">
         <div class="layui-row layui-col-space15">
             <div class="layui-col-xs4 text-center padding-top-15">
-                <input type="hidden" data-type="png,webp" name="character_image" value="{$vo.character_image|default=''}">
+                <input type="hidden" data-type="png,webp" data-uptype="local" name="character_image" value="{$vo.character_image|default=''}">
                 <script>
                     (function () {
                         var input = $('#BannerForm input[name="character_image"]');
@@ -11,10 +11,10 @@
                         input.next('.uploadimage').find('[data-file="image"]').attr('data-file', 'one');
                     }());
                 </script>
-                <div class="color-desc margin-top-5">人物图：透明 PNG 或 WebP。留空时直接展示背景图。</div>
+                <div class="color-desc margin-top-5">人物图：透明 PNG 或 WebP，上传后由本站提供图片地址。留空时直接展示背景图。</div>
             </div>
             <div class="layui-col-xs4 text-center padding-top-15">
-                <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" name="image" value="{$vo.image|default=''}">
+                <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" data-uptype="local" name="image" value="{$vo.image|default=''}">
                 <script>
                     (function () {
                         var input = $('#BannerForm input[name="image"]');

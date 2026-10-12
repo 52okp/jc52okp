@@ -1,8 +1,9 @@
-const { BASE_URL, getHome, shareImageUrl } = require('../../common/api');
+const { BASE_URL, getHome, getArticleList, shareImageUrl } = require('../../common/api');
 const { topInset, backendImageUrl } = require('../../common/ui');
 const FALLBACK_BANNER = { id: 0, title: '', backgroundImage: '', characterImage: '', articleId: 0 };
+const withImageUrls = articles => (articles || []).map(article => ({ ...article, cover: backendImageUrl(article.cover, BASE_URL) }));
 Page({
-  data: { banners: [FALLBACK_BANNER], activeBanner: FALLBACK_BANNER, defaultBackground: '', bannerIndex: 0, keyword: '', articles: [], loading: false, refreshing: false, brandContracted: false, headerHidden: false, topInset: topInset() },
+  data: { banners: [FALLBACK_BANNER], activeBanner: FALLBACK_BANNER, defaultBackground: '', bannerIndex: 0, keyword: '', articleMode: 'recommend', articles: [], recommendArticles: [], latestArticles: [], latestPage: 0, latestTotal: 0, latestLoaded: false, latestLoading: false, loading: false, refreshing: false, brandContracted: false, headerHidden: false, topInset: topInset() },
   onShow() {
     this.pageVisible = true;
     const tabBar = this.getTabBar && this.getTabBar();
@@ -10,14 +11,17 @@ Page({
     if (this.data.loading) return;
     if (!this.lastHomeLoadedAt || Date.now() - this.lastHomeLoadedAt > 60000) this.loadHome();
     else this.startBannerTimer();
+    if (this.data.articleMode === 'latest' && (!this.lastLatestLoadedAt || Date.now() - this.lastLatestLoadedAt > 60000)) this.loadLatest(1);
   },
   onHide() { this.pageVisible = false; this.stopBannerTimer(); this.setData({ brandContracted: false }); },
-  onUnload() { this.pageVisible = false; this.stopBannerTimer(); this.loadVersion = (this.loadVersion || 0) + 1; },
+  onUnload() { this.pageVisible = false; this.stopBannerTimer(); this.loadVersion = (this.loadVersion || 0) + 1; this.latestRequestVersion = (this.latestRequestVersion || 0) + 1; },
   async onRefresh() {
     if (this.data.refreshing) return;
     this.stopBannerTimer();
     this.setData({ refreshing: true, brandContracted: true });
-    try { await this.loadHome(); }
+    try {
+      await Promise.all([this.loadHome(), this.data.articleMode === 'latest' ? this.loadLatest(1, true) : Promise.resolve()]);
+    }
     finally { this.setData({ refreshing: false }); }
   },
   onRefresherPulling(event) {
@@ -37,7 +41,10 @@ Page({
     this.loadVersion = version;
     this.setData({ loading: true });
     try {
-      const data = await getHome();
+      const app = getApp();
+      const pending = app && app.homePrefetch;
+      if (pending) app.homePrefetch = null;
+      const data = await (pending || getHome());
       if (version !== this.loadVersion) return;
       const defaultBackground = backendImageUrl(data.default_banner_background, BASE_URL);
       const banners = (data.banners || []).map(item => {
@@ -50,12 +57,14 @@ Page({
         };
       }).filter(item => item.backgroundImage || item.characterImage);
       const available = banners.length ? banners : [{ ...FALLBACK_BANNER, backgroundImage: defaultBackground }];
+      const recommendArticles = withImageUrls(data.recommend);
       this.setData({
         banners: available,
         activeBanner: available[0],
         defaultBackground,
         bannerIndex: 0,
-        articles: data.recommend || []
+        recommendArticles,
+        articles: this.data.articleMode === 'recommend' ? recommendArticles : this.data.latestArticles
       });
       this.lastHomeLoadedAt = Date.now();
       if (this.pageVisible) this.startBannerTimer();
@@ -64,6 +73,40 @@ Page({
     } finally {
       if (version === this.loadVersion) this.setData({ loading: false });
     }
+  },
+  selectArticleMode(event) {
+    const mode = event.currentTarget.dataset.mode;
+    if (mode === this.data.articleMode || (mode !== 'recommend' && mode !== 'latest')) return;
+    this.setData({ articleMode: mode, articles: mode === 'recommend' ? this.data.recommendArticles : this.data.latestArticles });
+    if (mode === 'latest' && !this.data.latestLoaded) this.loadLatest(1);
+  },
+  async loadLatest(page, force = false) {
+    if (this.data.latestLoading && !force) return;
+    const version = (this.latestRequestVersion || 0) + 1;
+    this.latestRequestVersion = version;
+    this.setData({ latestLoading: true });
+    try {
+      const data = await getArticleList({ page, limit: 10, order: 'latest' });
+      if (version !== this.latestRequestVersion) return;
+      const pageArticles = withImageUrls(data.list);
+      const latestArticles = page === 1 ? pageArticles : this.data.latestArticles.concat(pageArticles);
+      this.setData({
+        latestArticles,
+        latestPage: page,
+        latestTotal: data.total || 0,
+        latestLoaded: true,
+        ...(this.data.articleMode === 'latest' ? { articles: latestArticles } : {})
+      });
+      this.lastLatestLoadedAt = Date.now();
+    } catch (_) {
+      // Keep the last successfully loaded articles when the request fails.
+    } finally {
+      if (version === this.latestRequestVersion) this.setData({ latestLoading: false });
+    }
+  },
+  loadMoreArticles() {
+    if (this.data.articleMode !== 'latest' || !this.data.latestLoaded || this.data.latestLoading) return;
+    if (this.data.latestArticles.length < this.data.latestTotal) this.loadLatest(this.data.latestPage + 1);
   },
   searchInput(event) { this.setData({ keyword: event.detail.value }); },
   search() { wx.navigateTo({ url: '/pages/list/list?title=' + encodeURIComponent('搜索结果') + '&keyword=' + encodeURIComponent(this.data.keyword) }); },

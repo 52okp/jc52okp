@@ -8,7 +8,6 @@
     <view wx:if="{{tagLabel || categoryName}}" class="article-tag">{{tagLabel || categoryName}}</view>
     <view class="article-meta">
       <text wx:if="{{dateLabel}}">◷ {{dateLabel}}</text>
-      <text wx:if="{{hasViews}}">◉ {{viewsLabel}}</text>
     </view>
   </view>
 </view>

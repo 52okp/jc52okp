@@ -1,6 +1,6 @@
 <view wx:if="{{article}}" class="page detail">
   <image wx:if="{{article.cover}}" class="featured" src="{{article.cover}}" mode="widthFix"/>
-  <view class="article-heading card"><view class="eyebrow">AI TUTORIAL</view><view class="title">{{article.title}}</view><view class="article-info"><text>◉ {{article.num_read}} 阅读</text><text>{{article.create_at}}</text></view></view>
+  <view class="article-heading card"><view class="eyebrow">AI TUTORIAL</view><view class="title">{{article.title}}</view><view class="article-info"><text>{{article.create_at}}</text></view></view>
   <view class="card content"><rich-text nodes="{{article.content}}" selectable user-select/></view>
   <view wx:if="{{article.links.length}}" class="card resources"><view class="section">配套资料</view><view class="muted resource-desc">由作者提供，复制后前往对应平台获取</view>
     <view wx:for="{{article.links}}" wx:key="index" class="link"><view><view class="link-type">{{item.type === '解压密码' ? '解压密码' : (item.type || '资料链接')}}</view><view wx:if="{{item.code}}" class="muted">访问码 {{item.code}}</view></view><button size="mini" class="primary" data-index="{{index}}" bindtap="copyLink">复制</button></view>
