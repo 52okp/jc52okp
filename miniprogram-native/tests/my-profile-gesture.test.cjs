@@ -54,7 +54,8 @@ test('My profile follows an upward swipe and settles into a compact header', () 
 
   const markup = fs.readFileSync(path.join(__dirname, '../pages/my/my.wxml'), 'utf8');
   assert.equal((markup.match(/member\.nickname \|\| '微信用户'/g) || []).length, 1);
-  for (const route of ['favorites/favorites', 'history/history', 'about/about']) {
+  assert.ok(!markup.includes('我的收藏'));
+  for (const route of ['history/history', 'about/about']) {
     assert.ok(markup.includes(`/pages/${route}`));
   }
 });
