@@ -35,10 +35,21 @@ test('cached tab bars keep their own selection while switching pages', () => {
 
   const home = mountTabBar('pages/home/home');
   const my = mountTabBar('pages/my/my');
+  definition.pageLifetimes.show.call(home);
+  assert.equal(home.data.entering, true);
+  assert.equal(home.data.selected, 0);
   home.switchTab({ currentTarget: { dataset: { index: 2 } } });
   assert.equal(home.data.selected, 0);
+  definition.pageLifetimes.hide.call(home);
+  assert.equal(home.data.entering, false);
+  assert.equal(home.data.selected, 0);
+  definition.pageLifetimes.show.call(my);
+  assert.equal(my.data.entering, true);
   my.switchTab({ currentTarget: { dataset: { index: 0 } } });
   assert.equal(my.data.selected, 2);
+  definition.pageLifetimes.hide.call(my);
+  definition.pageLifetimes.show.call(home);
+  assert.equal(home.data.entering, true);
   assert.equal(home.data.selected, 0);
   const category = mountTabBar('pages/category/category');
   home.switchTab({ currentTarget: { dataset: { index: 1 } } });

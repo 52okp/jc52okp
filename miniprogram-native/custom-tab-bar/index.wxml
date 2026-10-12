@@ -1,6 +1,6 @@
 <view class="tabbar-root">
   <view class="tabbar-inner">
-    <view wx:for="{{tabs}}" wx:key="pagePath" class="tab-item {{selected === index ? 'active' : ''}}" data-index="{{index}}" bindtap="switchTab">
+    <view wx:for="{{tabs}}" wx:key="pagePath" class="tab-item {{selected === index ? 'active' : ''}} {{selected === index && entering ? 'entering' : ''}}" data-index="{{index}}" bindtap="switchTab">
       <view class="tab-item-content">
         <image class="tab-icon" src="{{item.iconPath}}" mode="aspectFit"/>
         <text>{{item.text}}</text>

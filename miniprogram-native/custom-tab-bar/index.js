@@ -5,7 +5,7 @@ const tabs = [
 ];
 
 Component({
-  data: { selected: -1, tabs },
+  data: { selected: -1, entering: false, tabs },
   lifetimes: {
     attached() {
       if (typeof getCurrentPages !== 'function') return;
@@ -14,6 +14,10 @@ Component({
       const index = current && tabs.findIndex(tab => tab.pagePath.slice(1) === current.route);
       if (index >= 0) this.setData({ selected: index });
     }
+  },
+  pageLifetimes: {
+    show() { this.setData({ entering: true }); },
+    hide() { this.setData({ entering: false }); }
   },
   methods: {
     switchTab(event) {
