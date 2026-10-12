@@ -1,5 +1,4 @@
-<view class="my-screen">
-  <view class="my-header" style="padding-top:{{topInset}}px;"><view class="header-title">我的</view></view>
+<view class="my-screen" style="padding-top:{{topInset}}px;">
   <view class="profile-card">
     <view class="avatar-shell">
       <image class="avatar" src="{{avatar}}" mode="aspectFill"/>

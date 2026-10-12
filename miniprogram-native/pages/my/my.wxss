@@ -1,6 +1,4 @@
-.my-screen { min-height:100vh; position:relative; overflow:hidden; padding:0 28rpx 50rpx; box-sizing:border-box; background:radial-gradient(circle at 86% 6%,#dae8ff 0,transparent 39%),linear-gradient(180deg,#f4f8ff,#eff6ff); }
-.my-header { position:relative; z-index:1; padding-left:4rpx; padding-bottom:42rpx; }
-.header-title { font-size:46rpx; font-weight:850; line-height:1.1; }
+.my-screen { min-height:100vh; position:relative; overflow:hidden; padding:0 28rpx 50rpx; box-sizing:border-box; background:#F5F8FD; }
 .profile-card { position:relative; z-index:1; display:flex; align-items:center; height:254rpx; padding:0 36rpx; border-radius:26rpx; overflow:hidden; background:linear-gradient(115deg,#8db7ff 0,#afcdfb 56%,#c3c2fa 100%); box-shadow:0 16rpx 32rpx rgba(71,115,205,.15); box-sizing:border-box; }
 .profile-card::before { content:''; position:absolute; right:-100rpx; bottom:-170rpx; width:440rpx; height:300rpx; border-radius:50%; background:rgba(255,255,255,.18); transform:rotate(-20deg); }
 .profile-glow { position:absolute; left:-70rpx; top:-70rpx; width:260rpx; height:260rpx; border-radius:50%; background:rgba(255,255,255,.17); }
@@ -29,8 +27,7 @@
 .dialog input { border:1rpx solid #dbe6f8; border-radius:16rpx; padding:20rpx; }
 .buttons { display:flex; gap:20rpx; margin-top:28rpx; }
 .buttons button { flex:1; border-radius:99rpx; }
-.my-screen { background:#F5F8FD; padding-bottom:calc(156rpx + env(safe-area-inset-bottom)); }
-.my-header { margin:0 -28rpx; padding-left:32rpx; padding-bottom:24rpx; background:linear-gradient(135deg,#3478F6,#78aefa); color:#fff; }
+.my-screen { padding-bottom:calc(156rpx + env(safe-area-inset-bottom)); }
 .profile-card { height:196rpx; margin-top:24rpx; background:#fff; box-shadow:0 3rpx 14rpx rgba(46,86,154,.045); border-radius:28rpx; }
 .profile-card::before { display:none; }
 .avatar-shell { width:138rpx; height:138rpx; flex-basis:138rpx; border:0; box-shadow:none; }
