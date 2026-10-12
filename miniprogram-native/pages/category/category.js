@@ -17,6 +17,10 @@ function orderCategories(items) {
 Page({
   data: { categories: [], categoryId: 0, categoryName: '', list: [], page: 1, total: 0, loading: false, initializing: true, topInset: topInset() },
   onLoad() { this.init(); },
+  onShow() {
+    const tabBar = this.getTabBar && this.getTabBar();
+    if (tabBar) tabBar.setData({ selected: 1 });
+  },
   async init() {
     try {
       const categories = orderCategories(await getCategories() || []);

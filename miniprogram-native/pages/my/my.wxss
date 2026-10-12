@@ -24,13 +24,13 @@
 .bottom-waves { position:absolute; left:0; right:0; bottom:-30rpx; height:280rpx; opacity:.75; pointer-events:none; }
 .bottom-waves view { position:absolute; width:950rpx; height:300rpx; border-radius:50%; background:rgba(171,200,255,.2); left:-80rpx; bottom:-170rpx; transform:rotate(-10deg); }
 .bottom-waves view:last-child { background:rgba(207,224,255,.46); left:130rpx; bottom:-205rpx; transform:rotate(12deg); }
-.mask { position:fixed; inset:0; z-index:9; background:rgba(18,36,70,.42); display:flex; align-items:center; justify-content:center; }
+.mask { position:fixed; inset:0; z-index:120; background:rgba(18,36,70,.42); display:flex; align-items:center; justify-content:center; }
 .dialog { width:570rpx; margin:0; padding:36rpx; }
 .heading { text-align:center; font-size:32rpx; font-weight:800; margin-bottom:28rpx; }
 .dialog input { border:1rpx solid #dbe6f8; border-radius:16rpx; padding:20rpx; }
 .buttons { display:flex; gap:20rpx; margin-top:28rpx; }
 .buttons button { flex:1; border-radius:99rpx; }
-.my-screen { background:#F5F8FD; padding-bottom:50rpx; }
+.my-screen { background:#F5F8FD; padding-bottom:calc(156rpx + env(safe-area-inset-bottom)); }
 .my-header { margin:0 -28rpx; padding-left:32rpx; padding-bottom:34rpx; background:linear-gradient(135deg,#3478F6,#78aefa); color:#fff; }
 .header-subtitle { color:rgba(255,255,255,.9); }
 .profile-card { height:196rpx; margin-top:24rpx; background:#fff; box-shadow:0 3rpx 14rpx rgba(46,86,154,.045); border-radius:28rpx; }

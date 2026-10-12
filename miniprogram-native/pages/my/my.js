@@ -2,7 +2,11 @@ const { getMemberInfo, updateProfile, uploadAvatar } = require('../../common/api
 const { topInset } = require('../../common/ui');
 Page({
   data: { member: {}, avatar: '/static/favicon.png', nicknameInput: '', showNick: false, saving: false, topInset: topInset() + 10 },
-  onShow() { this.load(); },
+  onShow() {
+    const tabBar = this.getTabBar && this.getTabBar();
+    if (tabBar) tabBar.setData({ selected: 2 });
+    this.load();
+  },
   async load() { try { const member = await getMemberInfo() || {}; this.setData({ member, avatar: member.avatar || '/static/favicon.png' }); } catch (_) {} },
   chooseAvatar(event) {
     const filePath = event.detail.avatarUrl;

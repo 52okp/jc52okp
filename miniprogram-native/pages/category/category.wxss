@@ -20,3 +20,4 @@
 .result-empty { margin-top:16rpx; padding:72rpx 8rpx; border-radius:24rpx; background:#fff; color:#9aa7bb; text-align:center; font-size:23rpx; }
 .result-end { display:flex; align-items:center; justify-content:center; gap:15rpx; padding:42rpx 8rpx 48rpx; color:#9aa7bb; text-align:center; font-size:21rpx; white-space:nowrap; }
 .end-rule { width:42rpx; height:1rpx; background:#d8e1ef; }
+.category-bottom-space { height:calc(150rpx + env(safe-area-inset-bottom)); }

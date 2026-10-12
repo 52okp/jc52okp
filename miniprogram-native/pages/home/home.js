@@ -3,7 +3,12 @@ const { topInset, backendImageUrl } = require('../../common/ui');
 const FALLBACK_BANNER = { id: 0, title: '', backgroundImage: '', characterImage: '', articleId: 0 };
 Page({
   data: { banners: [FALLBACK_BANNER], activeBanner: FALLBACK_BANNER, defaultBackground: '', bannerIndex: 0, keyword: '', articles: [], loading: false, refreshing: false, brandContracted: false, headerHidden: false, topInset: topInset() },
-  onShow() { this.pageVisible = true; this.loadHome(); },
+  onShow() {
+    this.pageVisible = true;
+    const tabBar = this.getTabBar && this.getTabBar();
+    if (tabBar) tabBar.setData({ selected: 0 });
+    this.loadHome();
+  },
   onHide() { this.pageVisible = false; this.stopBannerTimer(); this.setData({ brandContracted: false }); },
   onUnload() { this.pageVisible = false; this.stopBannerTimer(); this.loadVersion = (this.loadVersion || 0) + 1; },
   async onRefresh() {
