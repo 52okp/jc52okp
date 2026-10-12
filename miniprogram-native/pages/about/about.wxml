@@ -1,5 +1,14 @@
 <view class="page about-page"><view class="brand card"><image src="/static/favicon.png" mode="aspectFill"/><view class="brand-name">AI教程</view><view class="brand-desc">发现更好的 AI 创作方式</view></view>
 <view class="card menu"><button open-type="contact"><text>联系客服</text><text class="arrow">›</text></button><view bindtap="follow"><text>关注我们</text><text class="arrow">›</text></view></view>
 <view class="version">版本 v2.0.0</view>
-<view wx:if="{{showFollow}}" class="mask"><view class="dialog card"><view class="heading">关注我们</view><image wx:if="{{setting.follow_image}}" src="{{setting.follow_image}}" mode="widthFix" class="follow-image" bindtap="preview"/><view wx:else>暂未设置关注图</view><view>{{setting.follow_text}}</view><button bindtap="close">关闭</button></view></view>
+<view wx:if="{{showFollow}}" class="mask"><view class="dialog card"><view class="heading">关注我们</view>
+<scroll-view scroll-y class="follow-list {{followScrollable ? 'follow-list-scrollable' : ''}}">
+<view wx:for="{{followAccounts}}" wx:key="index" class="follow-account">
+<view class="follow-title">{{item.title}}</view>
+<image wx:if="{{item.image}}" src="{{item.image}}" mode="widthFix" class="follow-image" data-index="{{index}}" bindtap="preview"/>
+<view wx:if="{{item.description}}" class="follow-description">{{item.description}}</view>
+</view>
+<view wx:if="{{!followAccounts.length}}" class="follow-empty">暂无公众号信息</view>
+</scroll-view>
+<button bindtap="close">关闭</button></view></view>
 </view>

@@ -12,5 +12,12 @@
 .mask { position:fixed; inset:0; z-index:9; background:rgba(20,38,74,.42); display:flex; align-items:center; justify-content:center; }
 .dialog { width:610rpx; text-align:center; margin:0; padding:34rpx; }
 .heading { font-size:32rpx; font-weight:800; margin-bottom:22rpx; }
-.follow-image { width:390rpx; display:block; margin:20rpx auto; }
+.follow-list { max-height:60vh; }
+.follow-list-scrollable { height:54vh; }
+.follow-account { margin:0 0 18rpx; padding:20rpx; border-radius:20rpx; background:#f5f8fd; }
+.follow-account:last-child { margin-bottom:0; }
+.follow-title { color:#192437; font-size:28rpx; font-weight:700; }
+.follow-image { width:330rpx; max-width:100%; display:block; margin:16rpx auto; }
+.follow-description { color:#778397; font-size:24rpx; line-height:1.6; white-space:pre-wrap; }
+.follow-empty { color:#778397; font-size:25rpx; padding:28rpx 0; }
 .dialog button { margin-top:24rpx; border-radius:99rpx; background:#eaf1ff; color:#376ffa; }

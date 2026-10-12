@@ -7,19 +7,89 @@
 
             <fieldset class="layui-bg-gray">
                 <legend><b class="layui-badge think-bg-violet">关注我们</b></legend>
-                <div class="layui-row layui-col-space15">
-                    <div class="layui-col-xs3 text-center padding-top-15">
-                        <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" name="wxapp.follow_image" value="{:sysconf('wxapp.follow_image')}">
-                        <script>$('[name="wxapp.follow_image"]').uploadOneImage();</script>
-                        <div class="color-desc margin-top-5">关注图(公众号二维码等)</div>
+                <input type="hidden" name="wxapp.follow_accounts_present" value="1">
+                <div id="follow-account-list">
+                    {foreach $followAccounts as $i=>$account}
+                    <div class="follow-account-row layui-card" style="padding:15px;margin-bottom:12px">
+                        <div class="layui-row" style="margin-bottom:10px">
+                            <b class="follow-account-number">公众号</b>
+                            <div class="layui-btn-group" style="float:right">
+                                <button type="button" class="layui-btn layui-btn-primary layui-btn-xs follow-account-up">上移</button>
+                                <button type="button" class="layui-btn layui-btn-primary layui-btn-xs follow-account-down">下移</button>
+                                <button type="button" class="layui-btn layui-btn-danger layui-btn-xs follow-account-remove">删除</button>
+                            </div>
+                        </div>
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-xs3 text-center padding-top-15">
+                                <input type="hidden" data-follow-field="image" data-type="jpg,jpeg,png,gif,bmp,webp" name="wxapp.follow_accounts[{$i}][image]" value="{$account.image}">
+                                <div class="color-desc margin-top-5">公众号二维码</div>
+                            </div>
+                            <div class="layui-col-xs9">
+                                <label class="block relative">
+                                    <span class="help-label"><b>公众号名称</b></span>
+                                    <input type="text" data-follow-field="title" name="wxapp.follow_accounts[{$i}][title]" value="{$account.title}" placeholder="填写公众号名称" class="layui-input">
+                                </label>
+                                <label class="block relative margin-top-10">
+                                    <span class="help-label"><b>关注说明</b></span>
+                                    <textarea data-follow-field="description" name="wxapp.follow_accounts[{$i}][description]" placeholder="例如：长按识别二维码关注公众号" class="layui-textarea">{$account.description}</textarea>
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="layui-col-xs9">
-                        <label class="block relative">
-                            <span class="help-label"><b>关注说明文字</b>Follow Text</span>
-                            <textarea name="wxapp.follow_text" placeholder="例如：长按识别二维码关注公众号，获取更多教程" class="layui-textarea">{$followText}</textarea>
-                        </label>
-                    </div>
+                    {/foreach}
                 </div>
+                <button type="button" id="add-follow-account" class="layui-btn layui-btn-primary layui-btn-sm">添加公众号</button>
+                <span class="color-desc margin-left-10">最多 12 个；显示顺序与这里一致</span>
+                <script>
+                    (function () {
+                        var $list = $('#follow-account-list');
+                        function renumber() {
+                            $list.children('.follow-account-row').each(function (index) {
+                                $(this).find('.follow-account-number').text('公众号 ' + (index + 1));
+                                $(this).find('[data-follow-field]').each(function () {
+                                    this.name = 'wxapp.follow_accounts[' + index + '][' + this.getAttribute('data-follow-field') + ']';
+                                });
+                            });
+                        }
+                        $('#add-follow-account').on('click', function () {
+                            if ($list.children('.follow-account-row').length >= 12) {
+                                $.msg.tips('最多可设置 12 个公众号');
+                                return;
+                            }
+                            var $row = $('<div class="follow-account-row layui-card" style="padding:15px;margin-bottom:12px">' +
+                                '<div class="layui-row" style="margin-bottom:10px"><b class="follow-account-number"></b>' +
+                                '<div class="layui-btn-group" style="float:right">' +
+                                '<button type="button" class="layui-btn layui-btn-primary layui-btn-xs follow-account-up">上移</button>' +
+                                '<button type="button" class="layui-btn layui-btn-primary layui-btn-xs follow-account-down">下移</button>' +
+                                '<button type="button" class="layui-btn layui-btn-danger layui-btn-xs follow-account-remove">删除</button></div></div>' +
+                                '<div class="layui-row layui-col-space15"><div class="layui-col-xs3 text-center padding-top-15">' +
+                                '<input type="hidden" data-follow-field="image" data-type="jpg,jpeg,png,gif,bmp,webp" value="">' +
+                                '<div class="color-desc margin-top-5">公众号二维码</div></div><div class="layui-col-xs9">' +
+                                '<label class="block relative"><span class="help-label"><b>公众号名称</b></span>' +
+                                '<input type="text" data-follow-field="title" placeholder="填写公众号名称" class="layui-input"></label>' +
+                                '<label class="block relative margin-top-10"><span class="help-label"><b>关注说明</b></span>' +
+                                '<textarea data-follow-field="description" placeholder="例如：长按识别二维码关注公众号" class="layui-textarea"></textarea>' +
+                                '</label></div></div></div>');
+                            $list.append($row);
+                            renumber();
+                            $row.find('input[data-type]').uploadOneImage();
+                        });
+                        $list.on('click', '.follow-account-remove', function () {
+                            $(this).closest('.follow-account-row').remove();
+                            renumber();
+                        }).on('click', '.follow-account-up', function () {
+                            var $row = $(this).closest('.follow-account-row');
+                            $row.prev('.follow-account-row').before($row);
+                            renumber();
+                        }).on('click', '.follow-account-down', function () {
+                            var $row = $(this).closest('.follow-account-row');
+                            $row.next('.follow-account-row').after($row);
+                            renumber();
+                        });
+                        renumber();
+                        $list.find('input[data-type]').uploadOneImage();
+                    })();
+                </script>
             </fieldset>
 
             <fieldset class="layui-bg-gray">

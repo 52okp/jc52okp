@@ -12,11 +12,17 @@ if (!is_string($policy) || strlen($policy) > 20000) {
 }
 
 $nested = $normalize->invoke(null, [
-    'wxapp' => ['follow_image' => '', 'follow_text' => '', 'privacy_content' => $policy],
+    'wxapp' => [
+        'follow_image' => '', 'follow_text' => '', 'privacy_content' => $policy,
+        'follow_accounts_present' => '1',
+        'follow_accounts' => [['title' => 'A', 'image' => '/a.webp', 'description' => '关注 A']],
+    ],
     '_token_' => 'csrf',
 ]);
 if (($nested['wxapp.privacy_content'] ?? null) !== $policy ||
     ($nested['wxapp.follow_text'] ?? null) !== '' ||
+    ($nested['wxapp.follow_accounts'][0]['image'] ?? null) !== '/a.webp' ||
+    ($nested['wxapp.follow_accounts_present'] ?? null) !== '1' ||
     isset($nested['wxapp']) || ($nested['_token_'] ?? null) !== 'csrf') {
     throw new RuntimeException('Nested small-program settings were not normalized');
 }
@@ -30,6 +36,7 @@ foreach ([
     ['wxapp' => ['privacy_content' => 'new'], 'wxapp.privacy_content' => 'old'],
     ['wxapp' => 'invalid'],
     ['wxapp' => ['privacy_content' => []]],
+    ['wxapp' => ['follow_accounts' => 'invalid']],
     ['wxapp' => ['unexpected' => 'value']],
 ] as $invalid) {
     try {

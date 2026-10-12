@@ -23,6 +23,7 @@ namespace {
     $GLOBALS['wxapp_test_config'] = [
         'wxapp.follow_text|raw' => '旧的关注说明',
         'wxapp.privacy_content|raw' => '旧的隐私政策',
+        'wxapp.follow_image|raw' => '/upload/legacy-qr.png',
     ];
 
     if (\app\service\WxappSetting::readText('wxapp.privacy_content') !== '旧的隐私政策') {
@@ -44,11 +45,39 @@ namespace {
         throw new \RuntimeException('Empty saved text must not fall back to legacy config');
     }
 
+    $legacyAccounts = \app\service\WxappSetting::readFollowAccounts();
+    if (count($legacyAccounts) !== 1 || $legacyAccounts[0]['image'] !== '/upload/legacy-qr.png') {
+        throw new \RuntimeException('Legacy follow account fallback failed');
+    }
+    $accounts = [
+        ['title' => '公众号 A', 'image' => '/upload/a.webp', 'description' => '关注 A'],
+        ['title' => '公众号 B', 'image' => '/upload/b.png', 'description' => '关注 B'],
+    ];
+    \app\service\WxappSetting::saveFollowAccounts($accounts);
+    if (\app\service\WxappSetting::readFollowAccounts() !== $accounts) {
+        throw new \RuntimeException('Multiple follow accounts or their order was not preserved');
+    }
+    \app\service\WxappSetting::saveFollowAccounts([]);
+    if (\app\service\WxappSetting::readFollowAccounts() !== []) {
+        throw new \RuntimeException('Cleared accounts fell back to the legacy account');
+    }
+    foreach ([
+        [['title' => '', 'image' => '/upload/a.png', 'description' => '']],
+        [['title' => 'A', 'image' => '', 'description' => '']],
+        array_fill(0, 13, $accounts[0]),
+    ] as $invalidAccounts) {
+        try {
+            \app\service\WxappSetting::normalizeFollowAccounts($invalidAccounts);
+            throw new \RuntimeException('Invalid follow account list was accepted');
+        } catch (\InvalidArgumentException $expected) {
+        }
+    }
+
     try {
         \app\service\WxappSetting::saveText('wxapp.follow_image', 'bad');
         throw new \RuntimeException('Unexpected setting field was accepted');
     } catch (\InvalidArgumentException $expected) {
     }
 
-    echo "Long mini-program settings and legacy fallback passed\n";
+    echo "Long settings, multiple follow accounts and legacy fallback passed\n";
 }

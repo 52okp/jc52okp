@@ -18,9 +18,12 @@ class Setting extends Base
      */
     public function index(): Response
     {
+        $accounts = WxappSetting::readFollowAccounts();
+        $first = $accounts[0] ?? [];
         return $this->ok([
-            'follow_image'    => (string)sysconf('wxapp.follow_image'),
-            'follow_text'     => WxappSetting::readText('wxapp.follow_text'),
+            'follow_accounts' => $accounts,
+            'follow_image'    => $first['image'] ?? '',
+            'follow_text'     => $first['description'] ?? '',
             'privacy_content' => WxappSetting::readText('wxapp.privacy_content'),
         ]);
     }

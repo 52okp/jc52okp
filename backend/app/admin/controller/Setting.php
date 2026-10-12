@@ -22,7 +22,7 @@ class Setting extends Controller
     {
         if ($this->request->isGet()) {
             $this->title = '小程序设置';
-            $this->followText = WxappSetting::readText('wxapp.follow_text');
+            $this->followAccounts = WxappSetting::readFollowAccounts();
             $this->privacyContent = WxappSetting::readText('wxapp.privacy_content');
             $this->fetch();
         } else {
@@ -37,6 +37,20 @@ class Setting extends Controller
                 $this->error($e->getMessage());
                 return;
             }
+            $hasAccounts = array_key_exists('wxapp.follow_accounts_present', $submitted);
+            if ($hasAccounts && $submitted['wxapp.follow_accounts_present'] !== '1') {
+                $this->error('公众号信息格式不正确');
+            }
+            $accounts = null;
+            if ($hasAccounts) {
+                $rawAccounts = $submitted['wxapp.follow_accounts'] ?? [];
+                if (!is_array($rawAccounts)) $this->error('公众号信息格式不正确');
+                try {
+                    $accounts = WxappSetting::normalizeFollowAccounts($rawAccounts);
+                } catch (\InvalidArgumentException $e) {
+                    $this->error($e->getMessage());
+                }
+            }
             $changes = [];
             foreach ($allowed as $key => $maxLength) {
                 if (!array_key_exists($key, $submitted)) continue;
@@ -46,7 +60,7 @@ class Setting extends Controller
                 }
                 $changes[$key] = $value;
             }
-            if (!$changes) $this->error('没有可保存的设置！');
+            if (!$changes && !$hasAccounts) $this->error('没有可保存的设置！');
             foreach ($changes as $key => $value) {
                 if ($key === 'wxapp.follow_image') {
                     sysconf($key, $value);
@@ -54,6 +68,7 @@ class Setting extends Controller
                     WxappSetting::saveText($key, $value);
                 }
             }
+            if ($accounts !== null) WxappSetting::saveFollowAccounts($accounts);
             sysoplog('小程序设置', '修改小程序设置');
             $this->success('保存成功！');
         }
@@ -67,9 +82,10 @@ class Setting extends Controller
 
         $settings = $post['wxapp'];
         unset($post['wxapp']);
-        $allowed = ['follow_image', 'follow_text', 'privacy_content'];
+        $allowed = ['follow_image', 'follow_text', 'privacy_content', 'follow_accounts', 'follow_accounts_present'];
         foreach ($settings as $key => $value) {
-            if (!is_string($key) || !in_array($key, $allowed, true) || !is_string($value)) {
+            if (!is_string($key) || !in_array($key, $allowed, true) ||
+                ($key === 'follow_accounts' ? !is_array($value) : !is_string($value))) {
                 throw new \InvalidArgumentException('小程序设置格式不正确！');
             }
             $name = 'wxapp.' . $key;
