@@ -4,7 +4,7 @@ Page({
   data: { member: {}, avatar: '/static/favicon.png', nicknameInput: '', showNick: false, saving: false, topInset: topInset() + 10 },
   onShow() {
     const tabBar = this.getTabBar && this.getTabBar();
-    if (tabBar) tabBar.setData({ selected: 2, animated: false });
+    if (tabBar && tabBar.data.selected !== 2) tabBar.setData({ selected: 2 });
     if (!this.lastMemberLoadedAt || Date.now() - this.lastMemberLoadedAt > 60000) this.load();
   },
   async load() {

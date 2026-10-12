@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-test('floating tab bar switches pages immediately and restores selection on failure', () => {
+test('cached tab bars keep their own selection while switching pages', () => {
   const app = JSON.parse(fs.readFileSync(path.join(__dirname, '../app.json'), 'utf8'));
   assert.equal(app.tabBar.custom, true);
   assert.deepEqual(app.tabBar.list.map(item => item.pagePath), [
@@ -17,60 +17,40 @@ test('floating tab bar switches pages immediately and restores selection on fail
 
   let definition;
   const navigations = [];
-  let pendingSwitch;
   global.Component = value => { definition = value; };
-  global.getCurrentPages = () => [{ route: 'pages/category/category' }];
-  global.wx = { switchTab(options) { navigations.push(options.url); pendingSwitch = options; } };
+  global.wx = { switchTab(options) { navigations.push(options.url); } };
   delete require.cache[require.resolve('../custom-tab-bar/index')];
   require('../custom-tab-bar/index');
-  const tabBar = {
-    ...definition.methods,
-    data: { ...definition.data },
-    updates: [],
-    setData(values, callback) {
-      this.updates.push({ ...values, animatedBefore: this.data.animated });
-      Object.assign(this.data, values);
-      if (callback) callback();
-    }
-  };
-  assert.equal(tabBar.data.selected, -1);
-  assert.equal(tabBar.data.animated, false);
-  definition.lifetimes.attached.call(tabBar);
-  assert.equal(tabBar.data.selected, 1);
-  assert.equal(tabBar.data.animated, false);
-  tabBar.switchTab({ currentTarget: { dataset: { index: 1 } } });
-  assert.deepEqual(navigations, []);
-  tabBar.switchTab({ currentTarget: { dataset: { index: 2 } } });
-  assert.equal(tabBar.data.selected, 2);
-  assert.deepEqual(tabBar.updates.slice(-2), [
-    { animated: true, animatedBefore: false },
-    { selected: 2, animatedBefore: true }
-  ]);
-  assert.deepEqual(navigations, ['/pages/my/my']);
-  pendingSwitch.fail();
-  assert.equal(tabBar.data.selected, 1);
-
-  for (const [route, selected] of [
-    ['pages/home/home', 0], ['pages/category/category', 1], ['pages/my/my', 2]
-  ]) {
+  function mountTabBar(route) {
     global.getCurrentPages = () => [{ route }];
-    const destination = {
+    const tabBar = {
+      ...definition.methods,
       data: { ...definition.data },
-      updates: [],
-      setData(values, callback) {
-        this.updates.push({ ...values, animatedBefore: this.data.animated });
-        Object.assign(this.data, values);
-        if (callback) callback();
-      }
+      setData(values) { Object.assign(this.data, values); }
     };
-    definition.lifetimes.attached.call(destination);
-    assert.equal(destination.data.selected, selected);
-    assert.equal(destination.updates[0].animatedBefore, false);
-    assert.equal(destination.data.animated, false);
+    assert.equal(tabBar.data.selected, -1);
+    definition.lifetimes.attached.call(tabBar);
+    return tabBar;
   }
+
+  const home = mountTabBar('pages/home/home');
+  const my = mountTabBar('pages/my/my');
+  home.switchTab({ currentTarget: { dataset: { index: 2 } } });
+  assert.equal(home.data.selected, 0);
+  my.switchTab({ currentTarget: { dataset: { index: 0 } } });
+  assert.equal(my.data.selected, 2);
+  assert.equal(home.data.selected, 0);
+  const category = mountTabBar('pages/category/category');
+  home.switchTab({ currentTarget: { dataset: { index: 1 } } });
+  assert.equal(home.data.selected, 0);
+  assert.equal(category.data.selected, 1);
+  category.switchTab({ currentTarget: { dataset: { index: 1 } } });
+  assert.deepEqual(navigations, [
+    '/pages/my/my', '/pages/home/home', '/pages/category/category'
+  ]);
 });
 
-test('returning to an existing tab resets its indicator without replaying the transition', () => {
+test('onShow corrects stale tab selection only when necessary', () => {
   for (const [pagePath, selected] of [
     ['home/home.js', 0], ['category/category.js', 1], ['my/my.js', 2]
   ]) {
@@ -83,8 +63,9 @@ test('returning to an existing tab resets its indicator without replaying the tr
       }
     });
     const tabBar = {
-      data: { selected: (selected + 1) % 3, animated: true },
-      setData(values) { Object.assign(this.data, values); }
+      data: { selected: (selected + 1) % 3 },
+      updates: 0,
+      setData(values) { this.updates++; Object.assign(this.data, values); }
     };
     const page = {
       data: { loading: true },
@@ -93,6 +74,8 @@ test('returning to an existing tab resets its indicator without replaying the tr
     };
     pageDefinition.onShow.call(page);
     assert.equal(tabBar.data.selected, selected);
-    assert.equal(tabBar.data.animated, false);
+    assert.equal(tabBar.updates, 1);
+    pageDefinition.onShow.call(page);
+    assert.equal(tabBar.updates, 1);
   }
 });

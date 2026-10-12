@@ -5,7 +5,7 @@ const tabs = [
 ];
 
 Component({
-  data: { selected: -1, animated: false, tabs },
+  data: { selected: -1, tabs },
   lifetimes: {
     attached() {
       if (typeof getCurrentPages !== 'function') return;
@@ -20,13 +20,9 @@ Component({
       const index = Number(event.currentTarget.dataset.index);
       if (!Number.isInteger(index) || !tabs[index]) return;
       if (index === this.data.selected) return;
-      const previous = this.data.selected;
-      // Enable the transition on the tapped page only. Tab pages keep their
-      // own component instances, so their onShow handlers reset it on arrival.
-      this.setData({ animated: true }, () => {
-        this.setData({ selected: index });
-        wx.switchTab({ url: tabs[index].pagePath, fail: () => this.setData({ selected: previous }) });
-      });
+      // Tab pages are cached. Leave this page's selection in place so it is
+      // already correct on the first frame when the user returns.
+      wx.switchTab({ url: tabs[index].pagePath });
     }
   }
 });

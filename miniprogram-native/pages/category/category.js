@@ -25,7 +25,7 @@ Page({
   onLoad() { this.init(); },
   onShow() {
     const tabBar = this.getTabBar && this.getTabBar();
-    if (tabBar) tabBar.setData({ selected: 1, animated: false });
+    if (tabBar && tabBar.data.selected !== 1) tabBar.setData({ selected: 1 });
   },
   async init() {
     const version = this.requestVersion || 0;
