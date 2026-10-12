@@ -70,10 +70,10 @@ class Banner extends Controller
     protected function _form_filter(array &$data)
     {
         if ($this->request->isPost()) {
-            empty($data['image']) && $this->error('请上传头图背景！');
             $character = trim((string)($data['character_image'] ?? ''));
-            if ($character !== '' && strtolower(pathinfo((string)parse_url($character, PHP_URL_PATH), PATHINFO_EXTENSION)) !== 'png') {
-                $this->error('人物图片请上传透明 PNG！');
+            $extension = strtolower(pathinfo((string)parse_url($character, PHP_URL_PATH), PATHINFO_EXTENSION));
+            if ($character !== '' && !in_array($extension, ['png', 'webp'], true)) {
+                $this->error('人物图片请上传透明 PNG 或 WebP！');
             }
             if (empty($data['article_id'])) $data['article_id'] = 0;
         }

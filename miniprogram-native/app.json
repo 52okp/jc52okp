@@ -1,8 +1,8 @@
 {
   "pages": ["pages/home/home", "pages/category/category", "pages/my/my", "pages/list/list", "pages/detail/detail", "pages/favorites/favorites", "pages/history/history", "pages/about/about", "pages/account-confirm/index", "pages/account-policy/index"],
-  "window": {"navigationBarTitleText": "AI教程", "navigationBarBackgroundColor": "#f4f8ff", "navigationBarTextStyle": "black", "backgroundColor": "#f4f8ff"},
+  "window": {"navigationBarTitleText": "AI教程", "navigationBarBackgroundColor": "#F5F8FD", "navigationBarTextStyle": "black", "backgroundColor": "#F5F8FD"},
   "tabBar": {
-    "color": "#929eb5", "selectedColor": "#3472ff", "backgroundColor": "#ffffff",
+    "color": "#929eb5", "selectedColor": "#3478F6", "backgroundColor": "#ffffff",
     "list": [
       {"pagePath": "pages/home/home", "text": "首页", "iconPath": "static/tabbar/home.png", "selectedIconPath": "static/tabbar/home-on.png"},
       {"pagePath": "pages/category/category", "text": "分类", "iconPath": "static/tabbar/cat.png", "selectedIconPath": "static/tabbar/cat-on.png"},

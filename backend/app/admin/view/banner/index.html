@@ -23,15 +23,15 @@
                 {checkbox: true, fixed: true},
                 {field: 'sort', title: '排序', width: 90, align: 'center', sort: true, templet: '#SortInputTpl'},
                 {
-                    field: 'image', title: '背景图', width: 140, align: 'center', templet: function (d) {
-                        if (!d.image) return '-';
-                        return layui.laytpl('<div class="headimg" style="width:120px;height:54px;border-radius:6px" data-tips-image data-lazy-src="{{d.image}}"></div>').render(d);
+                    field: 'character_image', title: '人物图', width: 110, align: 'center', templet: function (d) {
+                        if (!d.character_image) return '无人物图';
+                        return layui.laytpl('<div class="headimg" style="width:72px;height:54px" data-tips-image data-lazy-src="{{d.character_image}}"></div>').render(d);
                     }
                 },
                 {
-                    field: 'character_image', title: '人物 PNG', width: 110, align: 'center', templet: function (d) {
-                        if (!d.character_image) return '仅头图';
-                        return layui.laytpl('<div class="headimg" style="width:72px;height:54px" data-tips-image data-lazy-src="{{d.character_image}}"></div>').render(d);
+                    field: 'image', title: '背景图', width: 140, align: 'center', templet: function (d) {
+                        if (!d.image) return '默认背景';
+                        return layui.laytpl('<div class="headimg" style="width:120px;height:54px;border-radius:6px" data-tips-image data-lazy-src="{{d.image}}"></div>').render(d);
                     }
                 },
                 {field: 'title', title: '标题', minWidth: 160, templet: '<div>{{d.title||"-"}}</div>'},

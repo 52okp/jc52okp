@@ -30,3 +30,15 @@
 .dialog input { border:1rpx solid #dbe6f8; border-radius:16rpx; padding:20rpx; }
 .buttons { display:flex; gap:20rpx; margin-top:28rpx; }
 .buttons button { flex:1; border-radius:99rpx; }
+.my-screen { background:#F5F8FD; padding-bottom:50rpx; }
+.my-header { margin:0 -28rpx; padding-left:32rpx; padding-bottom:34rpx; background:linear-gradient(135deg,#3478F6,#78aefa); color:#fff; }
+.header-subtitle { color:rgba(255,255,255,.9); }
+.profile-card { height:196rpx; margin-top:24rpx; background:#fff; box-shadow:0 3rpx 14rpx rgba(46,86,154,.045); border-radius:28rpx; }
+.profile-card::before { display:none; }
+.avatar-shell { width:138rpx; height:138rpx; flex-basis:138rpx; border:0; box-shadow:none; }
+.profile-name { color:#192437; }
+.name { font-size:34rpx; }
+.profile-id { color:#778397; font-size:23rpx; margin-top:8rpx; }
+.profile-arrow { color:#778397; }
+.menu-card,.menu-card.secondary { margin-top:26rpx; border-radius:28rpx; box-shadow:0 3rpx 14rpx rgba(46,86,154,.045); }
+.menu-row { color:#192437; }

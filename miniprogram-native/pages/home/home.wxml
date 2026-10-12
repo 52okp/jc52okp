@@ -1,12 +1,19 @@
 <view class="home-screen">
-  <view class="hero-stage {{heroImage ? 'has-banner' : ''}}" style="padding-top:{{topInset}}px;" bindtap="openHero">
-    <view class="hero-orb hero-orb-one"></view><view class="hero-orb hero-orb-two"></view>
-    <image wx:if="{{heroImage}}" class="hero-background" src="{{heroImage}}" mode="aspectFill" binderror="heroError"/>
+  <view class="hero-stage {{activeBanner.characterImage ? 'layered-hero' : 'image-hero'}}" style="padding-top:{{topInset}}px;" bindtouchstart="heroTouchStart" bindtouchend="heroTouchEnd" bindtouchcancel="heroTouchCancel" bindtap="openHero">
+    <image wx:if="{{activeBanner.backgroundImage}}" class="hero-background" src="{{activeBanner.backgroundImage}}" mode="aspectFill" webp="{{true}}" binderror="heroError"/>
     <view class="hero-veil"></view>
     <view class="hero-brand"><view class="brand-title">AI教程</view><view class="brand-subtitle">发现更好的 AI 创作方式</view></view>
-    <view class="hero-copy">
-      <view class="hero-headline">让 AI 更简单<text>更好用</text></view>
-      <view class="hero-description">从入门到实战，系统学习你的 AI 技能</view>
+    <view class="hero-card">
+      <view class="hero-plate"></view>
+      <view wx:if="{{activeBanner.characterImage}}" class="hero-character-clip"><image class="hero-character" src="{{activeBanner.characterImage}}" mode="aspectFit" webp="{{true}}" binderror="characterError"/></view>
+      <view class="hero-copy">
+        <view class="hero-headline">让 AI 更简单<text>更好用</text></view>
+        <view class="hero-description">从入门到实战，系统学习 AI 技能</view>
+      </view>
+    </view>
+    <view class="hero-bottom-fade"></view>
+    <view wx:if="{{banners.length > 1}}" class="hero-dots">
+      <view wx:for="{{banners}}" wx:key="id" class="hero-dot {{bannerIndex === index ? 'active' : ''}}" data-index="{{index}}" catchtap="selectBanner"></view>
     </view>
   </view>
   <view class="home-content">
@@ -15,15 +22,8 @@
       <input value="{{keyword}}" bindinput="searchInput" bindconfirm="search" confirm-type="search" placeholder="搜索教程 / 模型 / 工具" placeholder-class="search-placeholder"/>
       <view class="search-go" bindtap="search"><view class="search-arrow"></view></view>
     </view>
-    <view class="quick-grid">
-      <view wx:for="{{quickCategories}}" wx:key="id" class="quick-item" data-index="{{index}}" bindtap="openCategory">
-        <view class="quick-icon {{item.icon ? 'quick-uploaded' : 'quick-' + item.kind}}"><image wx:if="{{item.icon}}" class="quick-icon-image" src="{{item.icon}}" mode="aspectFit" data-index="{{index}}" binderror="iconError"/><text wx:else>{{item.glyph}}</text></view>
-        <view class="quick-title">{{item.name}}</view>
-        <view class="quick-hint">{{item.hint}}</view>
-      </view>
-    </view>
-    <view class="section-heading"><text>{{sectionTitle}}</text><view bindtap="openMore">查看更多 <text>›</text></view></view>
-    <article-card wx:for="{{recommend}}" wx:key="id" article="{{item}}" adaptive="{{true}}" bindopen="openArticle"/>
-    <view wx:if="{{!loading && !recommend.length}}" class="empty">暂无教程，去分类看看吧</view>
+    <view class="section-heading">推荐教程</view>
+    <article-card wx:for="{{articles}}" wx:key="id" article="{{item}}" bindopen="openArticle"/>
+    <view wx:if="{{loading}}" class="empty">加载中…</view><view wx:elif="{{!articles.length}}" class="empty">暂无推荐文章</view>
   </view>
 </view>

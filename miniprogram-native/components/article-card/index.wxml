@@ -1,15 +1,14 @@
 <view class="article-card {{compact ? 'compact' : ''}} {{adaptive ? 'adaptive-cover' : ''}}" bindtap="open">
-  <view class="cover-box {{article.cover ? '' : 'no-cover'}}">
-    <image wx:if="{{article.cover}}" class="article-cover" src="{{article.cover}}" mode="{{adaptive ? 'widthFix' : 'aspectFit'}}" lazy-load/>
+  <view class="cover-box {{article.cover && !coverFailed ? '' : 'no-cover'}}">
+    <image wx:if="{{article.cover && !coverFailed}}" class="article-cover" src="{{article.cover}}" mode="aspectFill" lazy-load binderror="coverError"/>
     <view wx:else class="article-cover fallback">AI</view>
   </view>
   <view class="article-body">
-    <view wx:if="{{tagLabel && !compact}}" class="article-tag">{{tagLabel}}</view>
     <view class="article-title">{{article.title}}</view>
-    <view class="article-summary">{{article.summary}}</view>
+    <view wx:if="{{tagLabel || categoryName}}" class="article-tag">{{tagLabel || categoryName}}</view>
     <view class="article-meta">
-      <text>◉ {{viewsLabel}}</text>
       <text wx:if="{{dateLabel}}">◷ {{dateLabel}}</text>
+      <text wx:if="{{hasViews}}">◉ {{viewsLabel}}</text>
     </view>
   </view>
 </view>

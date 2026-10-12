@@ -25,6 +25,5 @@ Page({
     catch (_) { wx.showToast({ title: '保存失败', icon: 'none' }); }
     finally { this.setData({ saving: false }); }
   },
-  go(event) { wx.navigateTo({ url: event.currentTarget.dataset.url }); },
-  goCategory() { wx.switchTab({ url: '/pages/category/category' }); }
+  go(event) { wx.navigateTo({ url: event.currentTarget.dataset.url }); }
 });

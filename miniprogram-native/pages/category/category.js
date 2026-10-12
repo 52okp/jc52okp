@@ -7,10 +7,7 @@ Page({
     try {
       const categories = await getCategories() || [];
       this.setData({ categories, initializing: false });
-      if (categories.length) {
-        const featured = categories.findIndex(item => /comfy/i.test(item.name || ''));
-        this.select({ currentTarget: { dataset: { index: featured >= 0 ? featured : 0 } } });
-      }
+      if (categories.length) this.select({ currentTarget: { dataset: { index: 0 } } });
     } catch (_) { this.setData({ initializing: false }); }
   },
   select(event) {
@@ -33,6 +30,5 @@ Page({
     } catch (_) {} finally { if (this.requestVersion === version) this.setData({ loading: false }); }
   },
   more() { if (!this.data.loading && this.data.list.length < this.data.total) this.setData({ page: this.data.page + 1 }, () => this.load()); },
-  openSelected() { if (this.data.categoryId) wx.navigateTo({ url: '/pages/list/list?category_id=' + this.data.categoryId + '&title=' + encodeURIComponent(this.data.categoryName) }); },
   openArticle(event) { wx.navigateTo({ url: '/pages/detail/detail?id=' + event.detail.id }); }
 });

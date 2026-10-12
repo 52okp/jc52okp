@@ -2,27 +2,27 @@
     <div class="layui-card-body padding-left-40">
         <div class="layui-row layui-col-space15">
             <div class="layui-col-xs4 text-center padding-top-15">
-                <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" name="image" value="{$vo.image|default=''}">
+                <input type="hidden" data-type="png,webp" name="character_image" value="{$vo.character_image|default=''}">
                 <script>
                     (function () {
-                        var input = $('#BannerForm input[name="image"]');
+                        var input = $('#BannerForm input[name="character_image"]');
                         input.uploadOneImage();
                         // Clicking the large preview area opens the local file chooser directly.
                         input.next('.uploadimage').find('[data-file="image"]').attr('data-file', 'one');
                     }());
                 </script>
-                <div class="color-desc margin-top-5">头图画面：可直接上传完整横图；另设人物 PNG 时，建议画面右侧留空。</div>
+                <div class="color-desc margin-top-5">人物图：透明 PNG 或 WebP。留空时直接展示背景图。</div>
             </div>
             <div class="layui-col-xs4 text-center padding-top-15">
-                <input type="hidden" data-type="png" name="character_image" value="{$vo.character_image|default=''}">
+                <input type="hidden" data-type="jpg,jpeg,png,gif,bmp,webp" name="image" value="{$vo.image|default=''}">
                 <script>
                     (function () {
-                        var input = $('#BannerForm input[name="character_image"]');
+                        var input = $('#BannerForm input[name="image"]');
                         input.uploadOneImage();
-                        input.next('.uploadimage').find('[data-file="character_image"]').attr('data-file', 'one');
+                        input.next('.uploadimage').find('[data-file="image"]').attr('data-file', 'one');
                     }());
                 </script>
-                <div class="color-desc margin-top-5">人物图：透明 PNG。留空时直接展示上方头图画面。</div>
+                <div class="color-desc margin-top-5">背景图：可选；删除并保存后使用后端默认背景。</div>
             </div>
             <div class="layui-col-xs4">
                 <label class="block relative">
