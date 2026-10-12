@@ -6,21 +6,21 @@
 }
 
 .profile-card {
+  position: sticky;
+  z-index: 5;
   display: flex;
   align-items: center;
-  min-height: 184rpx;
-  padding: 22rpx 28rpx;
+  padding: 0 28rpx;
   box-sizing: border-box;
-  border-radius: 26rpx;
   background: #fff;
 }
+.profile-card.settling { transition: height .22s ease-out, border-radius .22s ease-out; }
+.profile-card.settling .avatar-shell { transition: width .22s ease-out, height .22s ease-out, flex-basis .22s ease-out, margin-right .22s ease-out; }
+.profile-card.settling .profile-name { transition: font-size .22s ease-out; }
 
 .avatar-shell {
   position: relative;
-  flex: 0 0 116rpx;
-  width: 116rpx;
-  height: 116rpx;
-  margin-right: 24rpx;
+  flex: 0 0 auto;
   overflow: hidden;
   border-radius: 50%;
   background: #e6edf8;
@@ -44,8 +44,8 @@
 }
 
 .profile-details { flex: 1; min-width: 0; padding: 10rpx 0; }
-.profile-name { overflow: hidden; color: #192437; font-size: 35rpx; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
-.profile-id { margin-top: 8rpx; color: #778397; font-size: 23rpx; }
+.profile-name { overflow: hidden; color: #192437; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.profile-id { overflow: hidden; margin-top: 8rpx; color: #778397; font-size: 23rpx; white-space: nowrap; text-overflow: ellipsis; }
 .profile-chevron { margin-left: 16rpx; }
 
 .section-label {
