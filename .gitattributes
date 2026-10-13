@@ -1,0 +1,4 @@
+/backend/public/static/admin.js text eol=lf
+/backend/public/static/admin.*.js -text
+/backend/public/static/plugs/ckeditor5/core.umd.js -text -diff
+/backend/public/static/plugs/ckeditor5/zh-cn.umd.js -text -diff

@@ -66,13 +66,19 @@ class File extends Controller
      */
     public function edit()
     {
-        SystemFile::mForm('form');
+        $where = AdminService::isSuper() ? [] : ['uuid' => AdminService::getUserId(), 'issafe' => 0];
+        $id = (int)$this->request->param('id', 0);
+        if ($id <= 0 || !SystemFile::mk()->where($where)->where('id', $id)->count()) $this->error('File not found or access denied');
+        SystemFile::mForm('form', 'id', $where);
     }
 
-    /**
-     * 删除系统文件.
-     * @auth true
-     */
+    /** Limit editable metadata to the display name. */
+    protected function _edit_form_filter(array &$data): void
+    {
+        if ($this->request->isPost()) $data = array_intersect_key($data, array_flip(['id', 'name']));
+    }
+
+    /** @auth true */
     public function remove()
     {
         if (!AdminService::isSuper()) {

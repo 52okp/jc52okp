@@ -72,7 +72,7 @@ final class WordpressSync
                     $fields['unzip_code'] = mb_substr((string)$source['unzip_code'], 0, 100);
                 }
                 $categoryId = $this->syncCategories($site, $post, $source['categories'] ?? []);
-                if ($categoryId) $fields['category_id'] = $categoryId;
+                $fields['category_id'] = $categoryId;
                 if ($articleId) {
                     Db::name('article')->where('id', $articleId)->update($fields);
                 } else {
@@ -150,6 +150,7 @@ final class WordpressSync
                 Db::name('wp_sync_category')->insert(['site_id' => $site, 'term_id' => $id, 'category_id' => $categoryId]);
             } else {
                 $categoryId = (int)$link['category_id'];
+                Db::name('article_category')->where('id', $categoryId)->update(['name' => mb_substr($name, 0, 100)]);
             }
             Db::name('wp_sync_post_category')->insert(['site_id' => $site, 'post_id' => $post, 'term_id' => $id]);
             if (!$primary) $primary = $categoryId;

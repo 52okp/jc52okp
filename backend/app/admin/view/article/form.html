@@ -118,7 +118,7 @@
     (function () {
         var fromWordpress = {php}echo (isset($vo['source_type']) && $vo['source_type'] === 'wordpress') ? 'true' : 'false';{/php};
         // 已有链接数据（务必保证是数组）
-        var existed = {php}echo json_encode((isset($vo['links']) && is_array($vo['links'])) ? $vo['links'] : [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);{/php};
+        var existed = {php}echo json_encode((isset($vo['links']) && is_array($vo['links'])) ? $vo['links'] : [], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);{/php};
         if (!Array.isArray(existed)) existed = [];
 
         function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;'); }

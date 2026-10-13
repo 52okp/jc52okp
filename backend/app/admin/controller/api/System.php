@@ -102,7 +102,8 @@ class System extends Controller
     public function editor()
     {
         if (AdminService::isSuper()) {
-            $editor = input('editor', 'auto');
+            $editor = input('editor', 'ckeditor5');
+            if (!in_array($editor, ['auto', 'ckeditor5'], true)) $this->error('该编辑器版本已停止支持');
             sysconf('base.editor', $editor);
             sysoplog('系统运维管理', "切换编辑器为{$editor}");
             $this->success('已切换后台编辑器！', 'javascript:location.reload()');

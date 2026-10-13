@@ -2,7 +2,7 @@
 
 {block name="button"}
 <!--{if isset($issuper) and $issuper}-->
-<a class="layui-btn layui-btn-sm layui-btn-primary" data-load="{:url('admin/api.system/config')}">{:lang('清理无效配置')}</a>
+<a class="layui-btn layui-btn-sm layui-btn-primary" data-action="{:url('admin/api.system/config')}">{:lang('清理无效配置')}</a>
 <!--{/if}-->
 
 <!--{if auth('system')}-->
@@ -22,9 +22,9 @@
         <div class="layui-btn-group shadow-mini nowrap">
             <!--{if $app->isDebug()}-->
             <a class="layui-btn layui-btn-sm layui-btn-active">{:lang('以开发模式运行')}</a>
-            <a class="layui-btn layui-btn-sm layui-btn-primary" data-confirm="{:lang('确定要切换到生产模式运行吗？')}" data-load="{:url('admin/api.system/debug')}?state=1">{:lang('以生产模式运行')}</a>
+            <a class="layui-btn layui-btn-sm layui-btn-primary" data-confirm="{:lang('确定要切换到生产模式运行吗？')}" data-action="{:url('admin/api.system/debug')}?state=1">{:lang('以生产模式运行')}</a>
             <!--{else}-->
-            <a class="layui-btn layui-btn-sm layui-btn-primary" data-confirm="{:lang('确定要切换到开发模式运行吗？')}" data-load="{:url('admin/api.system/debug')}?state=0">{:lang('以开发模式运行')}</a>
+            <a class="layui-btn layui-btn-sm layui-btn-primary" data-confirm="{:lang('确定要切换到开发模式运行吗？')}" data-action="{:url('admin/api.system/debug')}?state=0">{:lang('以开发模式运行')}</a>
             <a class="layui-btn layui-btn-sm layui-btn-active">{:lang('以生产模式运行')}</a>
             <!--{/if}-->
         </div>
@@ -43,8 +43,7 @@
     </div>
     <div class="layui-card-body layui-clear">
         <div class="layui-btn-group shadow-mini">
-            {if !in_array(sysconf('base.editor'),['ckeditor4','ckeditor5','wangEditor','auto'])}{php}sysconf('base.editor','ckeditor4');{/php}{/if}
-            {foreach ['ckeditor4'=>'CKEditor4','ckeditor5'=>'CKEditor5','wangEditor'=>'wangEditor','auto'=>lang('自适应模式')] as $k => $v}{if sysconf('base.editor') eq $k}
+            {foreach ['ckeditor5'=>'CKEditor 5'] as $k => $v}{if sysconf('base.editor') eq $k}
             {if auth('storage')}<a data-title="配置{$v}" class="layui-btn layui-btn-sm layui-btn-active">{$v}</a>{else}<a class="layui-btn layui-btn-sm layui-btn-active">{$v}</a>{/if}
             {else}
             {if auth('storage')}<a data-title="配置{$v}" data-action="{:url('admin/api.system/editor')}" data-value="editor#{$k}" class="layui-btn layui-btn-sm layui-btn-primary">{$v}</a>{else}<a class="layui-btn layui-btn-sm layui-btn-primary">{$v}</a>{/if}

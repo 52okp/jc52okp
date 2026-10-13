@@ -149,7 +149,7 @@ class Index extends Controller
     protected function _info_form_filter(array &$data)
     {
         if ($this->request->isPost()) {
-            unset($data['username'], $data['authorize']);
+            $data = array_intersect_key($data, array_flip(['id', 'nickname', 'headimg', 'contact_mail', 'contact_phone', 'contact_qq', 'describe']));
         }
     }
 

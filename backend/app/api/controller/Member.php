@@ -8,7 +8,9 @@ use app\model\Member as MemberModel;
 use app\model\MemberFavorite;
 use app\model\MemberHistory;
 use app\service\MemberToken;
-use think\admin\extend\HttpExtend;
+use app\service\MemberMutex;
+use app\service\AvatarImage;
+use app\service\WechatSession;
 use think\admin\Storage;
 use think\Response;
 
@@ -32,10 +34,10 @@ class Member extends Base
             return $this->fail('后端未配置小程序 AppID/Secret（请在 .env 设置 WXAPP_APPID / WXAPP_SECRET）');
         }
 
-        $url = "https://api.weixin.qq.com/sns/jscode2session?appid={$appid}&secret={$secret}&js_code={$code}&grant_type=authorization_code";
-        $res = json_decode((string)HttpExtend::get($url), true) ?: [];
-        if (empty($res['openid'])) {
-            return $this->fail('微信登录失败：' . ($res['errmsg'] ?? '未知错误'));
+        try {
+            $res = WechatSession::exchange($appid, $secret, $code);
+        } catch (\RuntimeException $e) {
+            return $this->fail($e->getMessage());
         }
 
         $openid  = $res['openid'];
@@ -43,16 +45,22 @@ class Member extends Base
         $token   = MemberToken::issue();
         $now     = date('Y-m-d H:i:s');
 
-        $member = MemberModel::mk()->where('openid', $openid)->findOrEmpty();
-        if ($member->isExists()) {
-            $member->save(['token' => MemberToken::digest($token), 'login_at' => $now, 'unionid' => $unionid ?: $member->unionid]);
-        } else {
-            $member = MemberModel::mk();
-            $member->save([
-                'openid' => $openid, 'unionid' => $unionid, 'token' => MemberToken::digest($token),
-                'nickname' => '', 'avatar' => '', 'status' => 1, 'login_at' => $now,
-            ]);
-        }
+        try {
+            $member = MemberMutex::run('login:' . $openid, function () use ($openid, $unionid, $token, $now) {
+                $member = MemberModel::mk()->where('openid', $openid)->findOrEmpty();
+                if ($member->isExists()) {
+                    if ((int)$member->status !== 1) throw new \RuntimeException('账号已停用');
+                    $member->save(['token' => MemberToken::digest($token), 'login_at' => $now, 'unionid' => $unionid ?: $member->unionid]);
+                } else {
+                    $member = MemberModel::mk();
+                    $member->save([
+                        'openid' => $openid, 'unionid' => $unionid, 'token' => MemberToken::digest($token),
+                        'nickname' => '', 'avatar' => '', 'status' => 1, 'login_at' => $now,
+                    ]);
+                }
+                return $member;
+            });
+        } catch (\RuntimeException $e) { return $this->fail('登录失败，请稍后重试或联系管理员'); }
 
         return $this->ok([
             'token'  => $token,
@@ -108,19 +116,26 @@ class Member extends Base
             return $this->fail('图片不能超过 5M');
         }
 
-        $content = file_get_contents($file->getRealPath());
-        $name = 'avatar/' . md5($content) . '.' . $ext;
-
         try {
-            $info = Storage::instance()->set($name, $content);
-        } catch (\Throwable $e) {
-            return $this->fail('上传失败：' . $e->getMessage());
-        }
-        $url = $info['url'] ?? '';
-        if ($url === '') return $this->fail('上传失败，请检查后台存储配置');
-
-        $m->save(['avatar' => $url]);
-        return $this->ok(['avatar' => $url]);
+            $content = AvatarImage::encode((string)file_get_contents($file->getRealPath()));
+            $url = MemberMutex::run('avatar:' . (int)$m->id, function () use ($m, $content) {
+                $key = 'avatar-rate-' . (int)$m->id;
+                if ((int)app()->cache->get($key, 0) > time() - 60) throw new \RuntimeException('头像更新过于频繁，请一分钟后重试');
+                $dailyKey = $key . '-' . date('Ymd');
+                $daily = (int)app()->cache->get($dailyKey, 0);
+                if ($daily >= 10) throw new \RuntimeException('今日头像上传次数已达上限，请明日再试');
+                app()->cache->set($dailyKey, $daily + 1, 86400);
+                app()->cache->set($key, time(), 60);
+                $info = Storage::instance()->set('avatar/members/' . (int)$m->id . '.png', $content);
+                $url = $info['url'] ?? '';
+                if ($url === '') throw new \RuntimeException('头像保存失败，请稍后重试');
+                $url .= (str_contains($url, '?') ? '&' : '?') . 'v=' . substr(hash('sha256', $content), 0, 12);
+                $m->save(['avatar' => $url]);
+                return $url;
+            });
+            return $this->ok(['avatar' => $url]);
+        } catch (\RuntimeException $e) { return $this->fail($e->getMessage()); }
+        catch (\Throwable $e) { return $this->fail('头像保存失败，请稍后重试'); }
     }
 
     /**
@@ -134,13 +149,19 @@ class Member extends Base
         $aid = intval(request()->param('article_id', 0));
         if ($aid <= 0) return $this->fail('参数错误');
 
-        $fav = MemberFavorite::mk()->where(['member_id' => $m->id, 'article_id' => $aid])->findOrEmpty();
-        if ($fav->isExists()) {
-            $fav->delete();
-            return $this->ok(['favorited' => false]);
-        }
-        MemberFavorite::mk()->save(['member_id' => $m->id, 'article_id' => $aid]);
-        return $this->ok(['favorited' => true]);
+        $wanted = request()->param('favorited', null);
+        if ($wanted !== null && !in_array($wanted, [true, false, 1, 0, '1', '0'], true)) return $this->fail('收藏状态无效');
+        try {
+            $result = MemberMutex::run('favorite:' . $m->id . ':' . $aid, function () use ($m, $aid, $wanted) {
+                $key = ['member_id' => $m->id, 'article_id' => $aid];
+                $exists = MemberFavorite::mk()->where($key)->count() > 0;
+                $desired = $wanted === null ? !$exists : (bool)$wanted;
+                if (!$desired) MemberFavorite::mk()->where($key)->delete();
+                elseif (!$exists) MemberFavorite::mk()->save($key);
+                return $desired;
+            });
+            return $this->ok(['favorited' => $result]);
+        } catch (\RuntimeException $e) { return $this->fail('操作繁忙，请重试'); }
     }
 
     /**
@@ -151,14 +172,13 @@ class Member extends Base
     {
         $m = $this->getMember();
         if (!$m) return $this->needLogin();
-        $rows = MemberFavorite::mk()->alias('f')
+        $query = MemberFavorite::mk()->alias('f')
             ->join('article a', 'a.id = f.article_id')
             ->where('f.member_id', $m->id)->where('a.is_deleted', 0)->where('a.status', 1)
             ->whereRaw("(a.source_type = 'local' OR a.source_state = 'published')")
             ->order('f.id desc')
-            ->field('a.id,a.title,a.cover,a.summary,a.num_read,a.source_type')
-            ->select()->toArray();
-        return $this->ok($rows);
+            ->field('a.id,a.title,a.cover,a.summary,a.num_read,a.source_type');
+        return $this->collection($query);
     }
 
     /**
@@ -169,13 +189,23 @@ class Member extends Base
     {
         $m = $this->getMember();
         if (!$m) return $this->needLogin();
-        $rows = MemberHistory::mk()->alias('h')
+        $query = MemberHistory::mk()->alias('h')
             ->join('article a', 'a.id = h.article_id')
             ->where('h.member_id', $m->id)->where('a.is_deleted', 0)->where('a.status', 1)
             ->whereRaw("(a.source_type = 'local' OR a.source_state = 'published')")
             ->order('h.update_at desc,h.id desc')
-            ->field('a.id,a.title,a.cover,a.summary,a.num_read,a.source_type,h.update_at')
-            ->select()->toArray();
-        return $this->ok($rows);
+            ->field('a.id,a.title,a.cover,a.summary,a.num_read,a.source_type,h.update_at');
+        return $this->collection($query);
     }
+    private function collection($query): Response
+    {
+        $page = max(1, (int)request()->get('page', 1));
+        $limit = min(50, max(1, (int)request()->get('limit', 20)));
+        $rows = $query->limit(($page - 1) * $limit, $limit + 1)->select()->toArray();
+        $items = array_slice($rows, 0, $limit);
+        // Existing clients keep the array response; new clients explicitly opt in to pagination metadata.
+        return $this->ok(request()->get('paginated') === '1'
+            ? ['list' => $items, 'page' => $page, 'has_more' => count($rows) > $limit] : $items);
+    }
+
 }

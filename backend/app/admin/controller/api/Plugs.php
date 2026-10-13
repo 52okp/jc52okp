@@ -83,7 +83,8 @@ class Plugs extends Controller
         return response(join("\r\n", [
             sprintf('window.taDebug = %s;', $this->app->isDebug() ? 'true' : 'false'),
             sprintf("window.taAdmin = '%s';", sysuri('admin/index/index', [], false, $domain)),
-            sprintf("window.taEditor = '%s';", sysconf('base.editor|raw') ?: 'ckeditor4'),
+            "window.taEditor = 'ckeditor5';",
+            'window.taEditorLicense = ' . json_encode((string)env('CKEDITOR_LICENSE_KEY', 'GPL'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) . ';',
         ]))->contentType('application/javascript');
     }
 

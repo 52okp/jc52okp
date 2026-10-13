@@ -3,6 +3,7 @@
 <head>
     <title>{block name="title"}{$title|default=''}{if !empty($title)} · {/if}{:sysconf('site_name')}{/block}</title>
     <meta charset="utf-8">
+    <meta name="admin-csrf" content="{:app\service\AdminSecurity::csrf()}">
     <meta name="renderer" content="webkit">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
@@ -28,7 +29,7 @@
 {/block}
 <script src="__ROOT__/static/plugs/layui/layui.js"></script>
 <script src="__ROOT__/static/plugs/require/require.js"></script>
-<script src="__ROOT__/static/admin.3e9abbc3fb6c.js"></script>
+<script src="__ROOT__/static/admin.d02f26ea24c9.js"></script>
 <script src="__ROOT__/static/extra/script.js"></script>
 {block name='script'}{/block}
 </body>

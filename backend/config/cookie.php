@@ -31,5 +31,5 @@ return [
     // cookie 安全传输，只支持 https 协议
     'secure' => request()->isSsl(),
     // samesite 安全设置，支持 'strict' 'lax' 'none'
-    'samesite' => request()->isSsl() ? 'none' : 'lax',
+    'samesite' => 'lax',
 ];

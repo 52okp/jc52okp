@@ -38,7 +38,8 @@ require.config({
         'cropper': ['plugs/cropper/cropper.min'],
         'echarts': ['plugs/echarts/echarts.min'],
         'weditor': ['plugs/editor/create'],
-        'ckeditor4': ['plugs/ckeditor4/ckeditor'],
+        'ckeditor5-core': ['plugs/ckeditor5/core.umd'],
+        'ckeditor5-zh': ['plugs/ckeditor5/zh-cn.umd'],
         'ckeditor5': ['plugs/ckeditor5/ckeditor'],
         'artplayer': ['plugs/jquery/artplayer.min'],
         'filesaver': ['plugs/jquery/filesaver.min'],
@@ -71,19 +72,21 @@ define('jquery', [], function () {
 });
 
 /*! 注册 ckeditor 组件 */
-define('ckeditor', (function (type) {
-    if (type === 'wangEditor') return ['weditor'];
-    if (/^ckeditor[45]$/.test(type)) return [type];
-    return [Object.fromEntries ? 'ckeditor5' : 'ckeditor4'];
-})(window.taEditor || 'ckeditor4'), function (ckeditor) {
-    return ckeditor;
-});
+define('ckeditor', ['ckeditor5'], function (ckeditor) { return ckeditor; });
 
 require(['ckeditor'], function () {
 
 })
 
 $(function () {
+    $.ajaxPrefilter(function (options, original, xhr) {
+        const target = new URL(options.url, location.href);
+        if (target.origin === location.origin && !/^(GET|HEAD|OPTIONS)$/i.test(options.type || 'GET')) {
+            const token = document.querySelector('meta[name="admin-csrf"]');
+            if (token) xhr.setRequestHeader('X-Admin-CSRF', token.content);
+        }
+    });
+
 
     window.$body = $('body');
 

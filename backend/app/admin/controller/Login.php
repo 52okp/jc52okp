@@ -103,6 +103,7 @@ class Login extends Controller
                 }
             }
             $this->app->cache->delete($attemptKey);
+            $this->app->session->set('admin_auth', \app\service\AdminSecurity::stamp($user->toArray()));
             $user->hidden(['sort', 'status', 'password', 'is_deleted']);
             $this->app->session->set('user', $user->toArray());
             // 更新登录次数

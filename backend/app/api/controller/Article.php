@@ -37,7 +37,13 @@ class Article extends Base
 
         if ($keyword !== '') $query->whereLike('title', "%{$keyword}%");
         if ($tag !== '') $query->whereLike('tags', "%{$tag}%");
-        if ($category > 0) $query->where('category_id', $category);
+        if ($category > 0) $query->where(function ($filter) use ($category) {
+            $filter->where('category_id', $category)->whereOr('id', 'in', function ($sub) use ($category) {
+                $sub->name('wp_sync_post')->alias('p')->join('wp_sync_post_category pc', 'pc.site_id=p.site_id AND pc.post_id=p.post_id')
+                    ->join('wp_sync_category c', 'c.site_id=pc.site_id AND c.term_id=pc.term_id')
+                    ->where('c.category_id', $category)->field('p.article_id');
+            });
+        });
         if ($recommend !== '') $query->where('is_recommend', 1);
 
         $res = $query->order($order === 'latest' ? 'create_at desc,id desc' : 'sort desc,id desc')
@@ -75,6 +81,12 @@ class Article extends Base
 
         if ($article->isEmpty()) return $this->fail('文章不存在或已下架');
 
+        $member = $this->getMember();
+        // Public reads, including legacy requests with stale tokens, remain anonymous-capable.
+        // Only clients that explicitly support auth refresh receive the retry signal.
+        if (!$member && request()->get('auth_retry') === '1' &&
+            (string)request()->header('Member-Token', '') !== '') return $this->needLogin();
+
         // 阅读量 +1
         ArticleModel::mk()->where('id', $id)->inc('num_read')->update();
 
@@ -90,7 +102,6 @@ class Article extends Base
 
         // 登录会员：返回收藏状态 + 记录浏览历史
         $data['favorited'] = false;
-        $member = $this->getMember();
         if ($member) {
             $data['favorited'] = MemberFavorite::mk()
                 ->where(['member_id' => $member->id, 'article_id' => $id])->count() > 0;
@@ -103,12 +114,14 @@ class Article extends Base
     /** 记录/更新浏览历史 */
     private function recordHistory(int $memberId, int $articleId): void
     {
-        $his = MemberHistory::mk()->where(['member_id' => $memberId, 'article_id' => $articleId])->findOrEmpty();
-        if ($his->isExists()) {
-            $his->save(['update_at' => date('Y-m-d H:i:s')]);
-        } else {
-            MemberHistory::mk()->save(['member_id' => $memberId, 'article_id' => $articleId, 'update_at' => date('Y-m-d H:i:s')]);
-        }
+        \app\service\MemberMutex::run('history:' . $memberId . ':' . $articleId, function () use ($memberId, $articleId) {
+            $his = MemberHistory::mk()->where(['member_id' => $memberId, 'article_id' => $articleId])->findOrEmpty();
+            if ($his->isExists()) {
+                $his->save(['update_at' => date('Y-m-d H:i:s')]);
+            } else {
+                MemberHistory::mk()->save(['member_id' => $memberId, 'article_id' => $articleId, 'update_at' => date('Y-m-d H:i:s')]);
+            }
+        });
     }
 
     private function splitTags(string $tags): array

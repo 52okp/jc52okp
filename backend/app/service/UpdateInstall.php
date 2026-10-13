@@ -182,6 +182,7 @@ final class UpdateInstall
                     if (!is_file($target) || hash('sha256', $zip->getFromIndex($i)) !== hash_file('sha256', $target)) {
                         throw new RuntimeException('更新包包含数据库迁移，请先备份数据库并采用人工发布流程');
                     }
+                    SchemaHealth::requireMigration($name);
                     continue;
                 }
                 $stat = $zip->statIndex($i);

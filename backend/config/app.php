@@ -35,7 +35,7 @@ return [
     // 禁止访问（多应用模式有效）
     'deny_app_list' => [],
     // CORS 启用状态（默认开启跨域）
-    'cors_on' => true,
+    'cors_on' => false,
     // CORS 配置跨域域名（仅需填域名，留空则自动域名）
     'cors_host' => [],
     // CORS 授权请求方法
